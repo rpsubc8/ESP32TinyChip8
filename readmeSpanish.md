@@ -74,9 +74,7 @@ El archivo <b>gbConfig.h</b> se seleccionan las opciones:
 
 <br>
 <h1>Aplicaciones Test</h1>
-Al arrancar el ESP32, se realiza en modo ZX 48K, es decir, cargando la rom del ZX 48k con el BASIC.
-Cada vez que seleccionamos una ROM, se resetea la selección de cinta al bloque 0, así como el sonido.
-Posteriormente podemos elegir las roms:
+Se han dejado múltiples roms de pruebas, tanto juegos, como demos y aplicaciones.
 
 
 <br><br>
