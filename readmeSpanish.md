@@ -67,9 +67,7 @@ El archivo <b>gbConfig.h</b> se seleccionan las opciones:
  <li><b>use_lib_200x150:</b> Modo 200x150</li>  
  <li><b>use_lib_320x200:</b> Modo 320x200</li>
  <li><b>use_lib_log_serial:</b> Se envian logs por puerto serie usb</li>
- <li><b>gb_ms_keyboard:</b> Se debe especificar el número de milisegundos de polling para el teclado.</li>
- <li><b>gb_ms_sound:</b> Se debe especificar el número de milisegundos de polling para el sonido AY8912.</li>
- <li><b>gb_frame_crt_skip:</b> El número de frames de video que deben saltarse.</li>
+ <li><b>gb_ms_keyboard:</b> Se debe especificar el número de milisegundos de polling para el teclado.</li>  
  <li><b>gb_delay_emulate_ms:</b> Milisegundos de espera por cada frame completado.</li>
 </ul>
 
