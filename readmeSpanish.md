@@ -21,6 +21,8 @@ Se requiere:
   <li>Arduino IDE 1.8.11</li>
   <li>Librería Arduino bitluni 0.3.3</li>
  </ul>
+<center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyCPC/main/preview/ttgovga32v12.jpg'></center>
+<br>
  
 
 <h1>PlatformIO</h1>
