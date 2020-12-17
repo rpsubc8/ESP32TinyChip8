@@ -78,7 +78,7 @@ Multiple test roms have been left, both games, demos and applications.
 
 <br><br>
 <h1>Tool rom2h</h1>
-I have created a very basic tool, to convert the files <b>.rom</b>, in ready mode to be processed by the emulator. We only have to leave the files in the folder <b>input/roms</b> and execute the file <b>rom2h.exe</b>, so that an output will be generated in the directory <b>output/dataFlash</b>. For testing purposes, several files have been left in each directory, which it is recommended to delete in case of making a new custom list. It is also recommended to delete the files in the <b>ESP32TinyChip8\chip8\dataFlash\/b> directory to have a clean project.
+I have created a very basic tool, to convert the files <b>.rom</b>, in ready mode to be processed by the emulator. We only have to leave the files in the folder <b>input/roms</b> and execute the file <b>rom2h.exe</b>, so that an output will be generated in the directory <b>output/dataFlash</b>. For testing purposes, several files have been left in each directory, which it is recommended to delete in case of making a new custom list. It is also recommended to delete the files in the <b>ESP32TinyChip8\chip8\dataFlash\</b> directory to have a clean project.
 <a href='https://github.com/rpsubc8/ESP32TinyChip8/tree/main/tools/rom2h'>Tool rom2h</a>
 <br><br>
 <pre>
