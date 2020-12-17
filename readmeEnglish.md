@@ -4,7 +4,7 @@ Port from Chip8 emulator (Spittie) to TTGO VGA32 board.
 I have made several modifications:
 <ul>
  <li>Running on ESP32 with 520 KB of RAM (TTGO VGA32)</li>
- <li>Low-income SDO</li>
+ <li>Low-income OSD</li>
  <li>Created project compatible with Arduino IDE and Platform IO</li>
  <li>Loading ROMs in Flash progmem</li>
  <li>8-color (3-bit) video mode</li>
