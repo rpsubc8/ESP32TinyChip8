@@ -1,13 +1,14 @@
 # Tiny ESP32 Chip8
-Port from Chip8 emulator (Spittie) to TTGO VGA32 board.
+Chip8 (Spittie) emulator port to TTGO VGA32 v1.x (1.0, 1.1, 1.2, 1.4) board with ESP32.
 <br>
 I have made several modifications:
 <ul>
  <li>Running on ESP32 with 520 KB of RAM (TTGO VGA32)</li>
+ <li>Use of a single core</li>
  <li>Low-income OSD</li>
  <li>Created project compatible with Arduino IDE and Platform IO</li>
  <li>Loading ROMs in Flash progmem</li>
- <li>8-color (3-bit) video mode</li>
+ <li>8 and 64 color mode support (reduced version by Ricardo Massaro)</li>
  <li>Video mode 200x150 and 320x200</li>
  <li>Screen adjustment X</li>
  <li>Beeper audio (500 Hz)</li>
@@ -18,16 +19,17 @@ I have made several modifications:
 <h1>Requirements</h1>
 Required:
  <ul>
-  <li>Visual Studio 1.48.1 PLATFORM 2.2.0</li>
-  <li>Arduino IDE 1.8.11</li>
-  <li>Arduino bitluni bookcase 0.3.3</li>
+  <li>TTGO VGA32 v1.x (1.0, 1.1, 1.2, 1.4)</li>
+  <li>Visual Studio 1.48.1 PLATFORMIO 2.2.1 Espressif32 v3.3.2</li>
+  <li>Arduino IDE 1.8.11 Espressif System 1.0.6</li>
+  <li>Arduino bitluni 0.3.3 reduced library (included in project)</li>
  </ul>
 <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyCPC/main/preview/ttgovga32v12.jpg'></center>
 <br>
  
 
 <h1>PlatformIO</h1>
-PLATFORM 2.2.0 must be installed from the Visual Studio extensions.
+PLATFORMIO 2.2.1 must be installed from the Visual Studio extensions. Espressif32 v3.3.2 is also required. 
 <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/previewPlatformIOinstall.gif'></center>
 Then the working directory <b>TinyChip8ttgovga32</b> will be selected.
 We must modify the file <b>platformio.ini</b> the option <b>upload_port</b> to select the COM port where we have our TTGO VGA32 board.
@@ -41,8 +43,7 @@ Everything is prepared so we don't have to install the bitluni libraries.
 The whole project is compatible with the structure of Arduino 1.8.11.
 We only have to open the <b>chip8.ino</b> of the <b>chip8</b> directory.
 <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/previewArduinoIDEpreferences.gif'></center>
-We must install the spressif extensions in the additional card url manager <b>https://dl.espressif.com/dl/package_esp32_index.json</b>
-<center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/previewArduinoIDElibrary.gif'></center>
+We must install the spressif (v1.0.6) extensions in the additional card url manager <b>https://dl.espressif.com/dl/package_esp32_index.json</b>
 For the normal mode, the project is already prepared, so that no bitluni library is needed.
 We can do it from the library manager.
 We must deactivate the PSRAM option, and in case of exceeding 1 MB of binary, select 4 MB of partition when uploading. Although the code does not use PSRAM, if the option is active and our ESP32 does not have it, an exception will be generated and it will be restarted in loop mode.
@@ -67,7 +68,9 @@ The file <b>gbConfig.h</b> options are selected:
 <ul>  
  <li><b>use_lib_200x150:</b> 200x150 mode</li>  
  <li><b>use_lib_320x200:</b> 320x200 mode</li>
+ <li><b>use_lib_vga8colors:</b> 8-color (3-bit RGB) or 64-color (6-bit RRGGBB) mode</li>
  <li><b>use_lib_log_serial:</b> Logs are sent by serial port usb</li>
+ <li><b>FIX_PERIBOARD_NOT_INITING:</b> David Crespo Tascón's solution for keyboards that do not initialize.</li>
  <li><b>gb_ms_keyboard:</b> You must specify the number of milliseconds of polling for the keyboard.</li>  
  <li><b>gb_delay_emulate_ms:</b> Millisecond wait for each completed frame.</li>
 </ul>
@@ -75,6 +78,11 @@ The file <b>gbConfig.h</b> options are selected:
 <br>
 <h1>Test applications</h1>
 Multiple test roms have been left, both games, demos and applications.
+
+<br><br>
+<h1>DIY circuito</h1>
+If we don't want to use a TTGO VGA32 v1.x board, we can build it following fabgl's schematic:
+<center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/fabglcircuit.gif'></center>
 
 <br><br>
 <h1>Tool rom2h</h1>
