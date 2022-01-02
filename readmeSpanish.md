@@ -28,7 +28,7 @@ Se requiere:
  
 
 <h1>PlatformIO</h1>
-e debe instalar el PLATFORMIO 2.2.1 desde las extensiones del Visual Studio. Se requiere también Espressif32 v3.3.2. 
+Se debe instalar el PLATFORMIO 2.2.1 desde las extensiones del Visual Studio. Se requiere también Espressif32 v3.3.2. 
 <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/previewPlatformIOinstall.gif'></center>
 Luego se seleccionará el directorio de trabajo <b>TinyChip8ttgovga32</b>.
 Debemos modificar el fichero <b>platformio.ini</b> la opción <b>upload_port</b> para seleccionar el puerto COM donde tenemos nuestra placa TTGO VGA32.
@@ -79,6 +79,12 @@ El archivo <b>gbConfig.h</b> se seleccionan las opciones:
 <br>
 <h1>Aplicaciones Test</h1>
 Se han dejado múltiples roms de pruebas, tanto juegos, como demos y aplicaciones.
+
+
+<br><br>
+<h1>DIY circuito</h1>
+Si no queremos usar una placa TTGO VGA32 v1.x, podemos construirla siguiendo el esquema de <b>fabgl</b>:
+<center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/fabglcircuit.gif'></center>
 
 
 <br><br>
