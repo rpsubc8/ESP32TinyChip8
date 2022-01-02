@@ -43,7 +43,6 @@ Todo el proyecto es compatible con la estructura de Arduino 1.8.11.
 Tan sólo tenemos que abrir el <b>chip8.ino</b> del directorio <b>chip8</b>.
 <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/previewArduinoIDEpreferences.gif'></center>
 Debemos instalar las extensiones de spressif (v1.0.6) en el gestor de urls adicionales de tarjetas <b>https://dl.espressif.com/dl/package_esp32_index.json</b>
-<center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/previewArduinoIDElibrary.gif'></center>
 Para el modo normal, ya está preparado el proyecto, de forma que no se necesita ninguna librería de bitluni.
 Lo podemos hacer desde el administrador de bibliotecas.
 Debemos desactivar la opción de PSRAM, y en caso de superar 1 MB de binario, seleccionar 4 MB de partición a la hora de subir. Aunque el código no use PSRAM, si la opción está activa y nuestro ESP32 no dispone de ella, se generará una excepción y reinicio del mismo en modo bucle.
