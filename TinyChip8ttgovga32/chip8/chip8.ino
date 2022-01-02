@@ -2,23 +2,63 @@
 // Load Roms
 // VGA MODE200x150, MODE320x200
 // Mode 8 colors RGB 3 bits
-// VGA library bitluni 0.3.3 (include)
+// Mode 64 colors 6 bits
+// Fix keyboard boot (dcrespo3d David Crespo Tascon)
+// Tiny VGA library bitluni 0.3.3 (Ricardo Massaro include)
+// Visual Studio 1.48.1 PLATFORMIO 2.2.1 Espressif32 v3.3.2
+// Arduino IDE 1.8.11
+// TTGO VGA32 v1.x (1.0, 1.1, 1.2, 1.4)
 // gbConfig options configuration compile
 
-#include "Emulator/Keyboard/PS2Kbd.h"
+#include "PS2Kbd.h"
 #include <Arduino.h>
 #include "gbConfig.h"
 #include "chip8.h"
-#include "MartianVGA.h"
-#include "def/Font.h"
-#include "def/hardware.h"
+//#include "MartianVGA.h"
+//#include "def/Font.h"
+//#include "def/hardware.h"
 #include "driver/timer.h"
 #include "soc/timer_group_struct.h"
-#include "gb_globals.h"
+#include "gbGlobals.h"
 #include "dataFlash/gbrom.h"
-#include "PS2Boot/PS2KeyCode.h"
+#include "PS2KeyCode.h"
+#include "vga_6bit.h"
+#include "gb_sdl_font8x8.h"
 
-VGA3Bit vga;
+ #ifdef use_lib_vga8colors
+  //DAC 3 bits 8 colores
+  // 3 bit pins  
+ static const unsigned char pin_config[] = {  
+  PIN_RED_HIGH,
+  PIN_GREEN_HIGH,  
+  PIN_BLUE_HIGH,
+  255,
+  255,
+  255,
+  PIN_HSYNC,
+  PIN_VSYNC
+ };
+ #else
+  //DAC 6 bits 64 colores
+  static const unsigned char pin_config[] = {
+   PIN_RED_LOW,
+   PIN_RED_HIGH,
+   PIN_GREEN_LOW,
+   PIN_GREEN_HIGH,
+   PIN_BLUE_LOW,
+   PIN_BLUE_HIGH,
+   PIN_HSYNC,
+   PIN_VSYNC
+  };
+ #endif
+
+unsigned char gb_sync_bits;
+unsigned char **gb_buffer_vga;
+unsigned int **gb_buffer_vga32;
+
+
+
+//VGA3Bit vga;
 
 //Chars
 const static unsigned char chip8_fontset[80] =
@@ -57,7 +97,8 @@ static unsigned char key[16]; //uint8_t key[16];
 static unsigned char ram[4096]; //uint8_t ram[4096];
 
 // GFX
-static unsigned char gfx[64][32]; //uint8_t gfx[64][32];
+//static unsigned char gfx[64][32]; //uint8_t gfx[64][32];
+static unsigned char gfx[64][64]; //Para evitar over
 static unsigned char draw; //uint8_t draw;
 
 static unsigned short int opcode; //uint16_t opcode;
@@ -94,6 +135,84 @@ void Loadrom2Flash(unsigned char id);
 void SDL_keys_poll(void);
 void do_tinyOSD(void);
 void Beep_poll(void);
+void PrepareColorsUltraFastVGA(void);
+void SDLClear(void);
+void SDLprintText(const char *cad,int x, int y, unsigned char color,unsigned char backcolor);
+void SDLprintCharOSD(char car,int x,int y,unsigned char color,unsigned char backcolor);
+void jj_fast_putpixel(int x,int y,unsigned char c);
+
+static unsigned char gb_const_colorNormal[2]={0,63};
+
+
+//***********************************************************
+void jj_fast_putpixel(int x,int y,unsigned char c)
+{
+ //if ((x<0)||(x>319)||(y<0)||(y>199))
+ // return;
+// vga.dotFast(x,y,gb_color_vga[c]);
+ gb_buffer_vga[y][x^2]= gb_const_colorNormal[c];
+}
+
+//***********************************************************
+void SDLClear()
+{
+ unsigned int a32= gb_const_colorNormal[0];
+ a32= a32|(a32<<8)|(a32<<16)|(a32<<24);
+ for (int y=0; y<gb_topeY; y++){
+  for (int x=0; x<gb_topeX_div4; x++){
+   gb_buffer_vga32[y][x]= a32;
+  }
+ }
+}
+
+//*************************************************************************************
+void SDLprintCharOSD(char car,int x,int y,unsigned char color,unsigned char backcolor)
+{ 
+// unsigned char aux = gb_sdl_font_6x8[(car-64)];
+ int auxId = car << 3; //*8
+ unsigned char aux;
+ unsigned char auxBit,auxColor;
+ for (unsigned char j=0;j<8;j++)
+ {
+  aux = gb_sdl_font_8x8[auxId + j];
+  for (int i=0;i<8;i++)
+  {
+   auxColor= ((aux>>i) & 0x01);
+   //SDLputpixel(surface,x+(6-i),y+j,(auxColor==1)?color:backcolor);
+   jj_fast_putpixel(x+(6-i),y+j,(auxColor==1)?color:backcolor);
+  }
+ }
+}
+
+//***************************************************************************
+void SDLprintText(const char *cad,int x, int y, unsigned char color,unsigned char backcolor)
+{
+//SDL_Surface *surface,
+// gb_sdl_font_6x8
+ int auxLen= strlen(cad);
+ if (auxLen>50)
+  auxLen=50;
+ for (int i=0;i<auxLen;i++)
+ {
+  SDLprintCharOSD(cad[i],x,y,color,backcolor);
+  x+=7;
+ }
+}
+
+//***********************************************************
+void PrepareColorsUltraFastVGA()
+{  
+ //(color & RGBAXMask) | SBits;
+ #ifdef use_lib_vga8colors
+  for (unsigned char i=0;i<2;i++){   
+   gb_const_colorNormal[i]= (gb_const_colorNormal[i] & 0x07) | gb_sync_bits;
+  }
+ #else
+  for (unsigned char i=0;i<2;i++){//DAC 6 bits 64 colores
+   gb_const_colorNormal[i]= (gb_const_colorNormal[i] & 0x3F) | gb_sync_bits;
+  }
+ #endif
+}
 
 #define max_gb_main_menu 5
 const char * gb_main_menu[max_gb_main_menu]={
@@ -139,6 +258,8 @@ const char * gb_osd_screen_values[max_gb_osd_screen_values]={
 #ifdef use_lib_200x150
  #define gb_pos_x_menu 50
  #define gb_pos_y_menu 20
+ //#define gb_pos_x_menu 2
+ //#define gb_pos_y_menu 8 
 #else
  #define gb_pos_x_menu 100
  #define gb_pos_y_menu 40
@@ -149,23 +270,25 @@ const char * gb_osd_screen_values[max_gb_osd_screen_values]={
 
 void OSDMenuRowsDisplayScroll(const char **ptrValue,unsigned char currentId,unsigned char aMax)
 {//Dibuja varias lineas
- vga.setTextColor(WHITE,BLACK);
+ //JJ vga.setTextColor(WHITE,BLACK);
  for (int i=0;i<gb_osd_max_rows;i++)
  {
-  vga.setCursor(gb_pos_x_menu, gb_pos_y_menu+8+(i<<3));
-  vga.print("                    ");
+  //JJ vga.setCursor(gb_pos_x_menu, gb_pos_y_menu+8+(i<<3));
+  //JJ vga.print("                    ");
+  SDLprintText("                    ",gb_pos_x_menu,gb_pos_y_menu+8+(i<<3),ID_COLOR_BLACK,ID_COLOR_BLACK);
  }
  
  for (int i=0;i<gb_osd_max_rows;i++)
  {
   if (currentId >= aMax)
-   break;
-  if (i == 0)
-   vga.setTextColor(CYAN,BLUE);
-  else
-   vga.setTextColor(WHITE,BLACK);
-  vga.setCursor(gb_pos_x_menu, gb_pos_y_menu+8+(i<<3));
-  vga.print(ptrValue[currentId]);
+   break;   
+  //JJ if (i == 0)
+  //JJ  vga.setTextColor(CYAN,BLUE);
+  //JJ else
+  //JJ  vga.setTextColor(WHITE,BLACK);
+  //JJ vga.setCursor(gb_pos_x_menu, gb_pos_y_menu+8+(i<<3));
+  //JJ vga.print(ptrValue[currentId]);
+  SDLprintText(ptrValue[currentId],gb_pos_x_menu,gb_pos_y_menu+8+(i<<3),((i==0)?ID_COLOR_BLACK:ID_COLOR_WHITE),((i==0)?ID_COLOR_WHITE:ID_COLOR_BLACK));
   currentId++;
  }     
 }
@@ -175,27 +298,32 @@ unsigned char ShowTinyMenu(const char *cadTitle,const char **ptrValue,unsigned c
 {
  unsigned char aReturn=0;
  unsigned char salir=0;
- #ifdef use_lib_200x150
-  vga.fillRect(0,0,200,150,BLACK);
-  vga.fillRect(0,0,200,150,BLACK);//Repeat Fix visual defect
- #else
-  vga.fillRect(0,0,320,200,BLACK);
-  vga.fillRect(0,0,320,200,BLACK);//Repeat Fix visual defect    
- #endif
- vTaskDelay(2);
- vga.setTextColor(WHITE,BLACK);
- vga.setCursor((gb_pos_x_menu-(48)), gb_pos_y_menu-16);
- vga.print("Port Chip8(Spittie) by Ackerman");
+ //JJ #ifdef use_lib_200x150
+  //JJ vga.fillRect(0,0,200,150,BLACK);
+  //JJ vga.fillRect(0,0,200,150,BLACK);//Repeat Fix visual defect
+ //JJ #else
+  //JJ vga.fillRect(0,0,320,200,BLACK);
+  //JJ vga.fillRect(0,0,320,200,BLACK);//Repeat Fix visual defect    
+ //jJ #endif
+ //JJ vTaskDelay(2);
+ //JJ vga.setTextColor(WHITE,BLACK);
+ //JJ vga.setCursor((gb_pos_x_menu-(48)), gb_pos_y_menu-16);
+ //JJ vga.print("Port Chip8(Spittie) by Ackerman");
 
- vga.setTextColor(BLACK,WHITE); 
+ SDLClear();
+ SDLprintText("Chip8(Spittie)by Ackerman",(gb_pos_x_menu-(48)), (gb_pos_y_menu-16),ID_COLOR_WHITE,ID_COLOR_BLACK);
+
+ //JJ vga.setTextColor(BLACK,WHITE); 
  for (int i=0;i<12;i++)
  {  
-  vga.setCursor((gb_pos_x_menu+(i*6)), gb_pos_y_menu);
-  vga.print(" ");
+  //JJ vga.setCursor((gb_pos_x_menu+(i*6)), gb_pos_y_menu);
+  //JJ vga.print(" ");
+  SDLprintCharOSD(' ',gb_pos_x_menu+(i<<3),gb_pos_y_menu,ID_COLOR_BLACK,ID_COLOR_WHITE);
  }
+ SDLprintText(cadTitle,gb_pos_x_menu,gb_pos_y_menu,ID_COLOR_BLACK,ID_COLOR_WHITE);
   
- vga.setCursor(gb_pos_x_menu,gb_pos_y_menu);
- vga.print(cadTitle);
+ //JJ vga.setCursor(gb_pos_x_menu,gb_pos_y_menu);
+ //JJ vga.print(cadTitle);
 
  aReturn = (aSel!=-1)?aSel:0;
  OSDMenuRowsDisplayScroll(ptrValue,aReturn,aMax);
@@ -236,14 +364,16 @@ unsigned char ShowTinyMenu(const char *cadTitle,const char **ptrValue,unsigned c
  } 
  gb_show_osd_main_menu= 0;
 
- #ifdef use_lib_200x150
-  vga.fillRect(0,0,200,150,BLACK);
-  vga.fillRect(0,0,200,150,BLACK);//Repeat Fix visual defect
- #else
-  vga.fillRect(0,0,320,200,BLACK);
-  vga.fillRect(0,0,320,200,BLACK);//Repeat Fix visual defect    
- #endif
- vTaskDelay(2);
+ //JJ #ifdef use_lib_200x150
+  //JJ vga.fillRect(0,0,200,150,BLACK);
+  //JJ vga.fillRect(0,0,200,150,BLACK);//Repeat Fix visual defect
+ //JJ #else
+  //JJ vga.fillRect(0,0,320,200,BLACK);
+  //JJ vga.fillRect(0,0,320,200,BLACK);//Repeat Fix visual defect    
+ //JJ #endif
+ //JJ vTaskDelay(2);
+
+ SDLClear();
 
  return aReturn;
 }
@@ -345,10 +475,10 @@ void do_tinyOSD()
 //Lectura teclado
 void SDL_keys_poll()
 {
-	key[0x02] = (keymap[PS2_KC_2] == 0)?1:0; //2
+  key[0x02] = (keymap[PS2_KC_2] == 0)?1:0; //2
   key[0x01] = (keymap[PS2_KC_1] == 0)?1:0; //1
-	key[0x03] = (keymap[PS2_KC_3] == 0)?1:0; //3
-	key[0x0C] = (keymap[PS2_KC_4] == 0)?1:0; //4
+  key[0x03] = (keymap[PS2_KC_3] == 0)?1:0; //3
+  key[0x0C] = (keymap[PS2_KC_4] == 0)?1:0; //4
   key[0x04] = (keymap[PS2_KC_Q] == 0)?1:0; //q
   key[0x05] = (keymap[PS2_KC_W] == 0)?1:0; //w
   key[0x06] = (keymap[PS2_KC_E] == 0)?1:0; //e  
@@ -429,7 +559,9 @@ void CPU_loop()
 					
  	 default:
       {
-	   printf("Unknown opcode\n");				
+	   #ifdef use_lib_log_serial
+	    Serial.printf("Unknown opcode\n");
+	   #endif
  	  }
 	  break;
     }
@@ -580,7 +712,9 @@ void CPU_loop()
 					break;
 					
 					default: {
-						printf("Unknown opcode\n");
+						#ifdef use_lib_log_serial
+						 Serial.printf("Unknown opcode\n");
+						#endif 
 						
 					}
 					break;
@@ -661,7 +795,9 @@ void CPU_loop()
 					break;
 					
 					default: {
-						printf("Unknown opcode\n");
+						#ifdef use_lib_log_serial
+						 Serial.printf("Unknown opcode\n");
+						#endif 
 						
 					}
 					break;
@@ -755,7 +891,9 @@ void CPU_loop()
 					break;
 					
 					default: {
-						printf("Unknown opcode\n");
+						#ifdef use_lib_log_serial
+						 Serial.printf("Unknown opcode\n");
+						#endif 
 						
 					}
 					break;
@@ -764,7 +902,9 @@ void CPU_loop()
 			break;
 			
 			default: {
-				printf("Unknown opcode\n");
+				#ifdef use_lib_log_serial
+			 	 Serial.printf("Unknown opcode\n");
+				#endif
  				
 			}
 			break;
@@ -773,24 +913,30 @@ void CPU_loop()
 
 //****************************
 void SDL_DumpVGA(void)
-{
+{ 
  unsigned char aux;
- unsigned char ofsX,ofsY;
+ unsigned char ofsX,ofsY; 
  //SDLClear(screen);
  ofsY= gb_add_offset_y;
  for (int j=0; j<32; j++)
  {
   ofsX= gb_screen_xOffset + gb_add_offset_x;
-  for (int i=0; i<64; i++)
+  for (int i=0; i<64; i++)  
   {
-   aux= (gfx[i][j] == 1)?255:0;
-   vga.dotFast((ofsX+i),(ofsY+j),aux);  //x
-   vga.dotFast((ofsX+i+1),(ofsY+j),aux);//x+1
-   vga.dotFast((ofsX+i),ofsY+j+1,aux);  //x, y
-   vga.dotFast((ofsX+i+1),ofsY+j+1,aux);//x+1,y+1   
-   ofsX+= 2;
-  }
-  ofsY+=2;
+   //JJ aux= (gfx[i][j] == 1)?255:0;
+   //JJ vga.dotFast((ofsX+i),(ofsY+j),aux);  //x
+   //JJ vga.dotFast((ofsX+i+1),(ofsY+j),aux);//x+1
+   //JJ vga.dotFast((ofsX+i),ofsY+j+1,aux);  //x, y
+   //JJ vga.dotFast((ofsX+i+1),ofsY+j+1,aux);//x+1,y+1
+   
+   aux= (gfx[i][j] == 1)?gb_const_colorNormal[1]:gb_const_colorNormal[0];      
+   gb_buffer_vga[(ofsY+j)][(ofsX+i)^2] = aux; //No uso DMA, hay CPU de sobra
+   gb_buffer_vga[(ofsY+j)][(ofsX+i+1)^2] = aux;
+   gb_buffer_vga[(ofsY+j+1)][(ofsX+i)^2] = aux;
+   gb_buffer_vga[(ofsY+j+1)][(ofsX+i+1)^2] = aux;
+   ofsX+=2;
+  }  
+  ofsY+=2;  
  }
 }
 
@@ -834,20 +980,28 @@ void setup()
  #endif
  
  #ifdef use_lib_200x150
-  vga.init(vga.MODE200x150, RED_PIN_3B, GRE_PIN_3B, BLU_PIN_3B, HSYNC_PIN, VSYNC_PIN);       
+  //JJ vga.init(vga.MODE200x150, RED_PIN_3B, GRE_PIN_3B, BLU_PIN_3B, HSYNC_PIN, VSYNC_PIN);       
+  vga_init(pin_config,VgaMode_vga_mode_200x150,false); //Llamada en C   
  #else
-  vga.init(vga.MODE320x200, RED_PIN_3B, GRE_PIN_3B, BLU_PIN_3B, HSYNC_PIN, VSYNC_PIN);    
+  //JJ vga.init(vga.MODE320x200, RED_PIN_3B, GRE_PIN_3B, BLU_PIN_3B, HSYNC_PIN, VSYNC_PIN);    
+  vga_init(pin_config,VgaMode_vga_mode_320x200,false); //Llamada en C
  #endif
  
- vga.setFont(Font6x8);
- vga.clear(BLACK);
+ //vga.setFont(Font6x8);
+ //vga.clear(BLACK);
+
+ gb_sync_bits= vga_get_sync_bits();
+ gb_buffer_vga = vga_get_framebuffer();
+ gb_buffer_vga32=(unsigned int **)gb_buffer_vga;
+ PrepareColorsUltraFastVGA(); //Llamar despues de tener gb_sync_bits 
+ SDLClear();
  
  #ifdef use_lib_200x150
-  vga.fillRect(0,0,200,150,BLACK);
-  vga.fillRect(0,0,200,150,BLACK);//fix mode fast video
+   //JJ vga.fillRect(0,0,200,150,BLACK);
+   //JJ  vga.fillRect(0,0,200,150,BLACK);//fix mode fast video
  #else
-  vga.fillRect(0,0,320,200,BLACK);
-  vga.fillRect(0,0,320,200,BLACK);//fix mode fast video
+   //JJ vga.fillRect(0,0,320,200,BLACK);
+   //JJ vga.fillRect(0,0,320,200,BLACK);//fix mode fast video
  #endif
  
  #ifdef use_lib_log_serial
