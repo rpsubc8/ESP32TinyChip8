@@ -1,13 +1,14 @@
 # Tiny ESP32 Chip8
-Port del emulador Chip8 (Spittie) a la placa TTGO VGA32.
+Port del emulador Chip8 (Spittie) a la placa TTGO VGA32 v1.x (1.0, 1.1, 1.2, 1.4) con ESP32.
 <br>
 He realizado varias modificaciones:
 <ul>
  <li>Funcionando en ESP32 de 520 KB de RAM (TTGO VGA32)</li>  
+ <li>Uso de un sólo core</li>
  <li>OSD de bajos recursos</li>
  <li>Creado proyecto compatible con Arduino IDE y Platform IO</li> 
  <li>Carga de ROMs en Flash progmem</li>    
- <li>Modo de video de 8 colores (3 bits)</li> 
+ <li>Soporte para modo 8 y 64 colores (versión reducida de Ricardo Massaro)</li>  
  <li>Modo de video 200x150 y 320x200</li>
  <li>Ajuste de pantalla X</li>
  <li>Beeper audio (500 Hz)</li>
@@ -17,16 +18,17 @@ He realizado varias modificaciones:
 <h1>Requerimientos</h1>
 Se requiere:
  <ul>
-  <li>Visual Studio 1.48.1 PLATFORMIO 2.2.0</li>
-  <li>Arduino IDE 1.8.11</li>
-  <li>Librería Arduino bitluni 0.3.3</li>
+  <li>TTGO VGA32 v1.2</li>
+  <li>Visual Studio 1.48.1 PLATFORMIO 2.2.1 Espressif32 v3.3.2</li>
+  <li>Arduino IDE 1.8.11 Espressif System 1.0.6</li>
+  <li>Librería reducida Arduino bitluni 0.3.3 (incluida en proyecto)</li>  
  </ul>
 <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyCPC/main/preview/ttgovga32v12.jpg'></center>
 <br>
  
 
 <h1>PlatformIO</h1>
-Se debe instalar el PLATFORMIO 2.2.0 desde las extensiones del Visual Studio.
+e debe instalar el PLATFORMIO 2.2.1 desde las extensiones del Visual Studio. Se requiere también Espressif32 v3.3.2. 
 <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/previewPlatformIOinstall.gif'></center>
 Luego se seleccionará el directorio de trabajo <b>TinyChip8ttgovga32</b>.
 Debemos modificar el fichero <b>platformio.ini</b> la opción <b>upload_port</b> para seleccionar el puerto COM donde tenemos nuestra placa TTGO VGA32.
@@ -40,7 +42,7 @@ Está todo preparado para no tener que instalar las librerias de bitluni.
 Todo el proyecto es compatible con la estructura de Arduino 1.8.11.
 Tan sólo tenemos que abrir el <b>chip8.ino</b> del directorio <b>chip8</b>.
 <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/previewArduinoIDEpreferences.gif'></center>
-Debemos instalar las extensiones de spressif en el gestor de urls adicionales de tarjetas <b>https://dl.espressif.com/dl/package_esp32_index.json</b>
+Debemos instalar las extensiones de spressif (v1.0.6) en el gestor de urls adicionales de tarjetas <b>https://dl.espressif.com/dl/package_esp32_index.json</b>
 <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/previewArduinoIDElibrary.gif'></center>
 Para el modo normal, ya está preparado el proyecto, de forma que no se necesita ninguna librería de bitluni.
 Lo podemos hacer desde el administrador de bibliotecas.
@@ -66,7 +68,9 @@ El archivo <b>gbConfig.h</b> se seleccionan las opciones:
 <ul>  
  <li><b>use_lib_200x150:</b> Modo 200x150</li>  
  <li><b>use_lib_320x200:</b> Modo 320x200</li>
+ <li><b>use_lib_vga8colors:</b> Modo 8 colores (3 bits RGB) o 64 colores (6 bits RRGGBB)
  <li><b>use_lib_log_serial:</b> Se envian logs por puerto serie usb</li>
+ <li><b>FIX_PERIBOARD_NOT_INITING:</b> Solución de David Crespo Tascón para teclados que no se inicializan.</li>
  <li><b>gb_ms_keyboard:</b> Se debe especificar el número de milisegundos de polling para el teclado.</li>  
  <li><b>gb_delay_emulate_ms:</b> Milisegundos de espera por cada frame completado.</li>
 </ul>
