@@ -1,5 +1,6 @@
 # Tiny ESP32 Chip8
 Port del emulador Chip8 (Spittie) a la placa TTGO VGA32 v1.x (1.0, 1.1, 1.2, 1.4) con ESP32.
+<center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/chip8previewgif.jpg'></center>
 <br>
 He realizado varias modificaciones:
 <ul>
@@ -23,7 +24,7 @@ Se requiere:
   <li>Arduino IDE 1.8.11 Espressif System 1.0.6</li>
   <li>Librería reducida Arduino bitluni 0.3.3 (incluida en proyecto)</li>  
  </ul>
-<center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyCPC/main/preview/ttgovga32v12.jpg'></center>
+<center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/ttgovga32v12.jpg'></center>
 <br>
  
 
