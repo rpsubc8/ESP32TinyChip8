@@ -13,10 +13,22 @@ I have made several modifications:
  <li>Video mode 200x150 and 320x200</li>
  <li>Screen adjustment X</li>
  <li>Beeper audio (500 Hz)</li>
+ <li>Precompiled version (flash download 3.9.2) 320x200</li>
 </ul>
 
+<br><br>
+<h1>Precompiled version</h1>
+In the precompile folder there is a version already compiled to be saved with the flash download tool 3.9.2. It is a version with 320x200 resolution with the demo games in FLASH.<br><br>
+<a href='https://github.com/rpsubc8/ESP32TinyChip8/tree/main/precompile'>https://github.com/rpsubc8/ESP32TinyChip8/tree/main/precompile</a>
+<br><br>
+We must choose the ESP32 type:
+<center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/flash00.gif'></center>
+Subsequently, select the files as shown in the attached screenshot, with the same offset values:
+<center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/flash01.gif'></center>
+And we will press start. If everything has been correct, we will only have to restart the ESP32.
 
-<br>
+
+<br><br>
 <h1>Requirements</h1>
 Required:
  <ul>
