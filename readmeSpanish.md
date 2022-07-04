@@ -22,9 +22,9 @@ En la carpeta precompile se encuentra una versión ya compilada para poder ser g
 <a href='https://github.com/rpsubc8/ESP32TinyChip8/tree/main/precompile'>https://github.com/rpsubc8/ESP32TinyChip8/tree/main/precompile</a>
 <br><br>
 Debemos de elegir el tipo ESP32:
-<center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyFairChild/main/preview/flash00.gif'></center>
+<center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/flash00.gif'></center>
 Posteriormente, seleccionaremos los archivos tal y como la captura adjunta, con los mismos valores de offset:
-<center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyFairChild/main/preview/flash01.gif'></center>
+<center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/flash01.gif'></center>
 Y le daremos a start. Si todo ha sido correcto, sólo tendremos que reiniciar el ESP32.
 
 <br><br>
