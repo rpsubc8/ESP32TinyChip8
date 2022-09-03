@@ -147,7 +147,9 @@ En el archivo <b>hardware.h</b> se encuentra todo el GPIO (pinout).
  <li>17 - VGA VSYNC</li>
 </ul>
 El valor de la resistencia (metal film) para el DAC VGA, así como el potenciómetro logarítmico para el audio, es variable, y puede que se necesiten diferentes valores, en función del monitor VGA, así como de la línea de auriculares. Si no conectamos la salida de auriculares a un preamplificador, es buena idea usar un filtro pasivo paso bajo con resistencias y condensadores, aunque dado la calidad del CHIP 8, no es necesario.<br>
-La norma ATARI DB9, usa la resistencia interna <b>Pullup</b>, de ahi que los GPIO 31 al 39 no se puedan usar.
+La norma ATARI DB9, usa la resistencia interna <b>Pullup</b>, de ahi que los GPIO 31 al 39 no se puedan usar.<br>
+En monitores VGA muy antigüos, es posible que se deba poner una resistencia de 75 Ohmios en paralelo para adaptar impedancias.<br>
+En casos excepcionales, se recomienda poner en las lineas de VGA HSYNC y VGA VSYNC una resistencia de valor muy bajo, para proteger el pin, en caso de por motivos externos de error el monitor VGA itntroduzca voltaje.<br>
 
 
 
