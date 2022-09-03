@@ -60,6 +60,8 @@ En el archivo <b>hardware.h</b> se encuentra todo el GPIO (pinout).
  <li>23 - VGA HSYNC</li>
  <li>17 - VGA VSYNC</li>
 </ul>
+El valor de la resistencia para el sonido, así como el potenciómetro para el audio, es variable, y puede que se necesiten diferentes valores, en función del monitor VGA, así como de la línea de auriculares. Si no conectamos la salida de auriculares a un preamplificador, es buena idea usar un filtro pasivo paso bajo con resistencias y condensadores.<br>
+La norma ATARI DB9, usa la resistencia interna <b>Pullup</b>, de ahi que los GPIO 31 al 39 no se puedan usar.
 
 
 
@@ -94,11 +96,30 @@ Se permite cargar:
  </ul>
  Se dispone de un OSD básico de bajos recursos, es decir, muy simple, que se visualiza pulsando la tecla <b>F1</b>.
  <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/previewOSD.gif'></center>
+ Si usamos la placa <b>Wemos D1 R32</b>, activando dicha opción en la compilación, el OSD se mostrará según los milisegundos elegidos en el <b>gbConfig.h</b> al apretar 2 botones configurables, que por defecto serán <b>Arriba</b> y <b>A</b>, según el <b>gb_use_gamepad_osd_menu_button0</b> y <b>gb_use_gamepad_osd_menu_button1</b>.
  Se puede elegir la <b>rom</b> moviéndonos con los cursores <b>arriba</b> y <b>abajo</b>. También podemos movernos más rápido con la <b>izquierda</b> y <b>derecha</b>.
  Los ficheros deben ser convertidos a .h en hexadecimal. Puede usarse la herramienta online:<br>
  <a href='http://tomeko.net/online_tools/file_to_hex.php?lang=en'>http://tomeko.net/online_tools/file_to_hex.php?lang=en</a>
  
- 
+<br>
+<h1>Remapear Teclado</h1>
+En la placa TTGO VGA32 se permite tanto el uso de un teclado virtual (keyboard virtual), así como la posibilidad de remapear (gamepad remap) los cursores del teclado por el teclado de 4x4:
+<ul>
+ <li>Arriba, abajo, izquierda, derecha</li>
+ <li>0 y .</li>
+</ul>
+<center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/previewOSDkeyboardvirtual.gif'></center>
+Para el caso de la placa WEMOS D1 R32, se permite lo mismo, pero el remapeo no es del teclado, sino del gamepad conectado al DB9, de los posibles 6 botones.
+<ul>
+ <li>Arriba, abajo, izquierda, derecha</li>
+ <li>A y B/li>
+</ul>
+<center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/previewOSDremap.gif'></center>
+El remapeo permite asociar cualquiera (sólo 6) de las teclas del teclado 4x4 del Chip8 a un de las del teclado de movimiento, así como el <b>0</b> y el <b>.</b>, para el caso de la placa TTGO VGA32, mientras que para la WEMOS D1 R32, sería de los 6 posibles botones del gamepad.
+
+
+
+
 <br>
 <h1>Opciones</h1>
 El archivo <b>gbConfig.h</b> se seleccionan las opciones:
@@ -110,6 +131,10 @@ El archivo <b>gbConfig.h</b> se seleccionan las opciones:
  <li><b>FIX_PERIBOARD_NOT_INITING:</b> Solución de David Crespo Tascón para teclados que no se inicializan.</li>
  <li><b>gb_ms_keyboard:</b> Se debe especificar el número de milisegundos de polling para el teclado.</li>  
  <li><b>gb_delay_emulate_ms:</b> Milisegundos de espera por cada frame completado.</li>
+ <li><b>gb_ms_gamepad_osd_menu:</b> Milisegundos que hay que tener pulsado los botones <b>gb_use_gamepad_osd_menu_button0</b> y <b>gb_use_gamepad_osd_menu_button1</b> para que se muestre el OSD desde una placa Wemos D1 R32, al sustituir el soporte de teclado PS/2 por un gamepad de norma ATARI.</li>
+ <li><b>use_lib_board_wemos:</b> Si se descomenta esta linea, se usará la placa Wemos D1 R32, sustituyendo el soporte de teclado PS/2 por el gamepad ATARI DB9 de 5 botones, o CPC AMSTRAD de 6. También se usará un DAC de 1 bit, que genera blanco y negro.</li>
+ <li></b>gb_use_gamepad_osd_menu_button0</b> Uno de los botones que junto con el <b>gb_use_gamepad_osd_menu_button1</b> presionado durante el tiempo <b>use_lib_board_wemos</b> permite mostrar el menú OSD. Las opciones permitidas son ATARI_DB9_UP_ID, ATARI_DB9_DOWN_IDm ATARI_DB9_LEFT_IDm ATARI_DB9_RIGHT_ID, ATARI_DB9_A_ID, ATARI_DB9_B_ID.</li>
+ <li></b>gb_use_gamepad_osd_menu_button1</b> Juntándolo con el <b>gb_use_gamepad_osd_menu_button0</b> permite mostrar el menú OSD.</li>
 </ul>
 
 
