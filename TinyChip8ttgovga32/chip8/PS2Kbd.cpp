@@ -1,4 +1,7 @@
 #include "gbConfig.h"
+
+#ifndef use_lib_not_use_ps2keyboard
+
 #include "gbGlobals.h"
 #include "chip8.h"
 #include "hardware.h"
@@ -124,3 +127,5 @@ void emulateKeyChange(uint8_t scancode, uint8_t isdown)
 {
     keymap[scancode] = isdown ? 0 : 1;
 }
+
+#endif

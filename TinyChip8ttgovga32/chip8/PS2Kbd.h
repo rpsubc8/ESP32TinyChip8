@@ -1,6 +1,10 @@
 #ifndef _TECLADO_PS2KBD_H
  #define _TECLADO_PS2KBD_H
 
+#include "gbConfig.h"
+
+#ifndef use_lib_not_use_ps2keyboard
+
 #include "hardware.h"
 #include "keys.h"
 #include <Arduino.h>
@@ -18,6 +22,8 @@ boolean checkKey(uint8_t scancode);
 
 // inject key from wiimote, for not modifying OSD code
 void emulateKeyChange(uint8_t scancode, uint8_t isdown);
+
+#endif
 
 #endif
 

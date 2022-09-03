@@ -135,7 +135,10 @@
 #ifndef PS2KeyAdvanced_h
  #define PS2KeyAdvanced_h
 
- #include "gbConfig.h" 
+ #include "gbConfig.h"
+
+ #ifndef use_lib_not_use_ps2keyboard
+
 
  #ifdef FIX_PERIBOARD_NOT_INITING
 
@@ -434,5 +437,7 @@ class PS2KeyAdvanced {
 };
 
  #endif
+
+#endif
 
 #endif

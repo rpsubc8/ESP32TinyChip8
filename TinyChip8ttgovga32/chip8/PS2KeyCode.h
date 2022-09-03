@@ -48,6 +48,9 @@
 #ifndef PS2KeyCode_h
 #define PS2KeyCode_h
 
+#include "gbConfig.h"
+#ifndef use_lib_not_use_ps2keyboard
+
 /* Ignore code for key code translation */
 #define PS2_KEY_IGNORE  0xBB
 
@@ -273,4 +276,7 @@
 #define PS2_KC_POWER    0X37
 #define PS2_KC_SLEEP    0X3F
 #define PS2_KC_WAKE     0X5E
+
+#endif
+
 #endif

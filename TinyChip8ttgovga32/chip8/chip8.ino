@@ -4,11 +4,13 @@
 // Mode 8 colors RGB 3 bits
 // Mode 64 colors 6 bits
 // Fix keyboard boot (dcrespo3d David Crespo Tascon)
-// Tiny VGA library bitluni 0.3.3 (Ricardo Massaro include)
-// Visual Studio 1.48.1 PLATFORMIO 2.2.1 Espressif32 v3.3.2
-// Arduino IDE 1.8.11
+// Tiny VGA library bitluni 0.3.3 (Ricardo Massaro include in project)
+// Visual Studio 1.66.1 PLATFORMIO 2.5.0 Espressif32 v3.5.0
+// Arduino IDE 1.8.11 espressif systems v1.0.6
 // TTGO VGA32 v1.x (1.0, 1.1, 1.2, 1.4)
+// Wemos D1 R32 board support Joystick ATARI DB9, VGA (DAC 1 bit, 3 GPIO)
 // gbConfig options configuration compile
+// hardware.h configuration GPIO pinout
 
 #include "PS2Kbd.h"
 #include <Arduino.h>
@@ -16,7 +18,7 @@
 #include "chip8.h"
 //#include "MartianVGA.h"
 //#include "def/Font.h"
-//#include "def/hardware.h"
+#include "hardware.h"
 #include "driver/timer.h"
 #include "soc/timer_group_struct.h"
 #include "gbGlobals.h"
@@ -27,17 +29,31 @@
 
  #ifdef use_lib_vga8colors
   //DAC 3 bits 8 colores
-  // 3 bit pins  
- static const unsigned char pin_config[] = {  
-  PIN_RED_HIGH,
-  PIN_GREEN_HIGH,  
-  PIN_BLUE_HIGH,
-  255,
-  255,
-  255,
-  PIN_HSYNC,
-  PIN_VSYNC
- };
+  // 3 bit pins
+  #ifdef use_lib_board_wemos
+   static const unsigned char pin_config[] = {
+    //BOARD WEMOS
+    PIN_RED_HIGH,   //255
+    PIN_GREEN_HIGH, //255
+    PIN_BLUE_LOW,   //5
+    255,
+    255,
+    255,
+    PIN_HSYNC,
+    PIN_VSYNC        
+   };
+  #else
+   static const unsigned char pin_config[] = {
+    PIN_RED_HIGH,
+    PIN_GREEN_HIGH,  
+    PIN_BLUE_HIGH,
+    255,
+    255,
+    255,
+    PIN_HSYNC,
+    PIN_VSYNC      
+   };
+  #endif
  #else
   //DAC 6 bits 64 colores
   static const unsigned char pin_config[] = {
@@ -98,7 +114,10 @@ static unsigned char ram[4096]; //uint8_t ram[4096];
 
 // GFX
 //static unsigned char gfx[64][32]; //uint8_t gfx[64][32];
-static unsigned char gfx[64][64]; //Para evitar over
+#define max_gfx_row 64
+#define max_gfx_col 64
+//static unsigned char gfx[64][64]; //Para evitar over
+static unsigned char gfx[max_gfx_row][max_gfx_col]; //Para evitar over
 static unsigned char draw; //uint8_t draw;
 
 static unsigned short int opcode; //uint16_t opcode;
@@ -117,6 +136,48 @@ unsigned char gb_current_sel_rom=0;
 
 unsigned char gb_show_osd_main_menu=0;
 
+
+unsigned char gb_show_key4x4=0;
+unsigned char gb_show_key_virtual=0; //Muestra teclado virtual
+unsigned char gb_cur_key_virtual=0; //Tecla inicial seleccionada
+unsigned char gb_before_key_virtual=0;
+signed char gb_cur_col_key_virtual=0;
+signed char gb_cur_row_key_virtual=0;
+
+unsigned char gb_key_cur_virtual_left=0;
+unsigned char gb_key_before_virtual_left=0;
+unsigned char gb_key_cur_virtual_right=0;
+unsigned char gb_key_before_virtual_right=0;
+unsigned char gb_key_cur_virtual_up=0;
+unsigned char gb_key_before_virtual_up=0;
+unsigned char gb_key_cur_virtual_down=0;
+unsigned char gb_key_before_virtual_down=0;
+unsigned char gb_key_cur_virtual_a=0;
+unsigned char gb_key_before_virtual_a=0;
+
+//unsigned char gb_key_cur_virtual[6];//L R U D A B
+//unsigned char gb_key_before_virtual[6];
+
+char gb_keyRemap[16];
+unsigned char gb_id_key_left=0;
+unsigned char gb_id_key_right=0;
+unsigned char gb_id_key_up=0;
+unsigned char gb_id_key_down=0;
+unsigned char gb_id_key_a=0;
+unsigned char gb_id_key_b=0;
+
+unsigned char gb_car_key_left=46;
+unsigned char gb_car_key_right=46;
+unsigned char gb_car_key_up=46;
+unsigned char gb_car_key_down=46;
+unsigned char gb_car_key_a=46;
+unsigned char gb_car_key_b=46;
+
+
+
+
+
+
 unsigned char gb_current_delay_emulate_ms= gb_delay_emulate_ms;
 unsigned char gb_current_ms_poll_keyboard = gb_ms_keyboard;
 unsigned char gb_delay_t=0;
@@ -124,6 +185,13 @@ unsigned char gb_delay_sound=0;
 
 static unsigned char gbVolMixer=0; //Beep
 static unsigned char gbCont=0;
+
+#ifdef use_lib_not_use_ps2keyboard
+ unsigned char gb_atari_db9=0;
+ unsigned char gb_atari_db9_prev=0;
+ unsigned char gb_ini_osd_main_menu=0;
+ unsigned int gb_ini_osd_main_menu_time=0;
+#endif 
 
 //Funciones
 void ResetEmu(void);
@@ -139,13 +207,111 @@ void PrepareColorsUltraFastVGA(void);
 void SDLClear(void);
 void SDLprintText(const char *cad,int x, int y, unsigned char color,unsigned char backcolor);
 void SDLprintCharOSD(char car,int x,int y,unsigned char color,unsigned char backcolor);
-void jj_fast_putpixel(int x,int y,unsigned char c);
+inline void jj_fast_putpixel(int x,int y,unsigned char c);
+void ShowKey4x4(void);
+void ShowVirtualKeyboard(void);
+void SDL_keys_virtual_poll(void);
+
+#ifdef use_lib_not_use_ps2keyboard
+ #define KEY_CURSOR_LEFT 0
+ #define KEY_CURSOR_RIGHT 1
+ #define KEY_CURSOR_UP 2
+ #define KEY_CURSOR_DOWN 3
+ #define KEY_ENTER 4
+ #define KEY_ESC 5
+
+// #define ATARI_DB9_UP_PIN 26    //Up(1)    - 39
+// #define ATARI_DB9_DOWN_PIN 16  //Down(2)  - 38
+// #define ATARI_DB9_LEFT_PIN 27  //Left(3)  - 34
+// #define ATARI_DB9_RIGHT_PIN 14 //Right(4) - 36
+// #define ATARI_DB9_A_PIN 4      //A (6)    - 4
+// #define ATARI_DB9_B_PIN 0      //B (7)    - 2
+//                                //GND (8)
+
+ #define ATARI_DB9_UP_ID 0
+ #define ATARI_DB9_DOWN_ID 1
+ #define ATARI_DB9_LEFT_ID 2
+ #define ATARI_DB9_RIGHT_ID 3
+ #define ATARI_DB9_A_ID 4 
+ #define ATARI_DB9_B_ID 5
+
+ unsigned char checkAndCleanKey(unsigned char aKey);
+#endif
 
 static unsigned char gb_const_colorNormal[2]={0,63};
 
 
+#ifdef use_lib_not_use_ps2keyboard
+ void WaitClearAtariDB9()
+ {
+  unsigned char salir=0;
+  while (salir == 0)
+  {//Espera hasta que libera boton
+   gb_currentTime = millis();
+   if ((gb_currentTime-gb_keyboardTime) >= gb_current_ms_poll_keyboard)
+   {
+    gb_keyboardTime = gb_currentTime;
+    gb_atari_db9= 0;
+    if (digitalRead(ATARI_DB9_UP_PIN) == LOW){ gb_atari_db9 |= 0x01; }
+    if (digitalRead(ATARI_DB9_DOWN_PIN) == LOW){ gb_atari_db9 |= 0x02; }
+    if (digitalRead(ATARI_DB9_LEFT_PIN) == LOW){ gb_atari_db9 |= 0x04; }
+    if (digitalRead(ATARI_DB9_RIGHT_PIN) == LOW){ gb_atari_db9 |= 0x08; }
+    if (digitalRead(ATARI_DB9_A_PIN) == LOW){ gb_atari_db9 |= 0x10; }
+    if (digitalRead(ATARI_DB9_B_PIN) == LOW){ gb_atari_db9 |= 0x20; }
+    if (gb_atari_db9 == 0)
+    {
+     salir= 1;
+    }
+   }
+  }
+ }
+
+ unsigned char checkAndCleanKey(unsigned char aKey)
+ {
+  unsigned char aReturn=0;   
+  gb_atari_db9 = 0;
+  gb_atari_db9_prev = gb_atari_db9;
+
+  if (digitalRead(ATARI_DB9_UP_PIN) == LOW){ gb_atari_db9 |= 0x01; }
+  if (digitalRead(ATARI_DB9_DOWN_PIN) == LOW){ gb_atari_db9 |= 0x02; }
+  if (digitalRead(ATARI_DB9_LEFT_PIN) == LOW){ gb_atari_db9 |= 0x04; }
+  if (digitalRead(ATARI_DB9_RIGHT_PIN) == LOW){ gb_atari_db9 |= 0x08; }
+  if (digitalRead(ATARI_DB9_A_PIN) == LOW){ gb_atari_db9 |= 0x10; }
+  if (digitalRead(ATARI_DB9_B_PIN) == LOW){ gb_atari_db9 |= 0x20; }
+
+  switch (aKey)
+  {
+   case KEY_CURSOR_UP: if ((gb_atari_db9 & 0x01) == 0x01){ aReturn= 1;} break;
+   case KEY_CURSOR_DOWN: if ((gb_atari_db9 & 0x02) == 0x02){ aReturn= 1;} break;
+   case KEY_CURSOR_LEFT: if ((gb_atari_db9 & 0x04) == 0x04){ aReturn= 1;} break;
+   case KEY_CURSOR_RIGHT: if ((gb_atari_db9 & 0x08) == 0x08){ aReturn= 1;} break;
+   case KEY_ENTER: if ((gb_atari_db9 & 0x10) == 0x10){ aReturn= 1;} break;
+   case KEY_ESC: if ((gb_atari_db9 & 0x20) == 0x20){ aReturn= 1;} break;
+  }
+
+  if (aReturn == 1)
+  {
+   WaitClearAtariDB9();
+  }
+  //gb_atari_db9_prev = gb_atari_db9;
+  //while (gb_atari_db9_prev == gb_atari_db9)
+  //{//Espera hasta que libera boton
+  // gb_atari_db9= 0;
+  // if (digitalRead(ATARI_DB9_UP_PIN) == LOW){ gb_atari_db9 |= 0x01; }
+  // if (digitalRead(ATARI_DB9_DOWN_PIN) == LOW){ gb_atari_db9 |= 0x02; }
+  // if (digitalRead(ATARI_DB9_LEFT_PIN) == LOW){ gb_atari_db9 |= 0x04; }
+  // if (digitalRead(ATARI_DB9_RIGHT_PIN) == LOW){ gb_atari_db9 |= 0x08; }
+  // if (digitalRead(ATARI_DB9_A_PIN) == LOW){ gb_atari_db9 |= 0x10; }
+  // if (digitalRead(ATARI_DB9_B_PIN) == LOW){ gb_atari_db9 |= 0x20; }
+  //}
+
+
+  return aReturn;
+ }
+#endif 
+
 //***********************************************************
-void jj_fast_putpixel(int x,int y,unsigned char c)
+inline void jj_fast_putpixel(int x,int y,unsigned char c)
 {
  //if ((x<0)||(x>319)||(y<0)||(y>199))
  // return;
@@ -214,16 +380,58 @@ void PrepareColorsUltraFastVGA()
  #endif
 }
 
-#define max_gb_main_menu 5
+
+#define max_gb_osd_key_4x4 17
+const char * gb_osd_key_4x4[max_gb_osd_key_4x4]={
+ "1",
+ "2",
+ "3",
+ "4",
+ "Q",
+ "W",
+ "E",
+ "R",
+ "A",
+ "S",
+ "D",
+ "F",
+ "Z",
+ "X",
+ "C",
+ "V",
+ "Exit Menu"
+};
+
+#define max_gb_osd_gamepad 7
+const char * gb_osd_gamepad[max_gb_osd_gamepad]={
+ "Left",
+ "Right",      
+ "Up",
+ "Down",
+ "A",
+ "B",
+ "Exit Menu"
+};
+
+#define max_gb_main_menu 7
 const char * gb_main_menu[max_gb_main_menu]={
  "Load ROM",
  "Speed",
  "Screen Adjust",
+ "Gamepad Remap",
+ "Keyboard virtual", 
  "Reset",
- "Return"
+ "Exit Menu"
 };
 
-#define max_gb_speed_sound_menu 7
+#define max_gb_keyboard_virtual_menu 3
+const char * gb_keyboard_virtual_menu[max_gb_keyboard_virtual_menu]={
+ "Enable",
+ "Disable",
+ "Exit Menu"
+};
+
+#define max_gb_speed_sound_menu 8
 const char * gb_speed_sound_menu[max_gb_speed_sound_menu]={
  "0",
  "1",
@@ -231,28 +439,39 @@ const char * gb_speed_sound_menu[max_gb_speed_sound_menu]={
  "4",
  "8",
  "16",
- "32"
+ "32",
+ "Exit Menu"
 };
 
-#define max_gb_speed_videoaudio_options_menu 3
+#define max_gb_speed_videoaudio_options_menu 4
 const char * gb_speed_videoaudio_options_menu[max_gb_speed_videoaudio_options_menu]={
  "Audio poll",
  "Video delay",
- "Keyboard poll"
+ "Keyboard poll",
+ "Exit Menu"
 };
 
-#define max_gb_osd_screen 1
+#define max_gb_osd_screen 2
 const char * gb_osd_screen[max_gb_osd_screen]={
- "Pixels Left"
+ "Pixels Left",
+ "Exit Menu"
 };
 
-#define max_gb_osd_screen_values 5
+#define max_gb_osd_screen_values 6
 const char * gb_osd_screen_values[max_gb_osd_screen_values]={
  "0",
  "2",
  "4", 
  "8", 
- "16"
+ "16",
+ "Exit Menu"
+};
+
+#define max_gb_reset_menu 3
+const char * gb_reset_menu[max_gb_reset_menu]={
+ "Soft",
+ "Hard",
+ "Exit Menu" 
 };
 
 #ifdef use_lib_200x150
@@ -298,6 +517,7 @@ unsigned char ShowTinyMenu(const char *cadTitle,const char **ptrValue,unsigned c
 {
  unsigned char aReturn=0;
  unsigned char salir=0;
+ unsigned char teclaPulsada=0;
  //JJ #ifdef use_lib_200x150
   //JJ vga.fillRect(0,0,200,150,BLACK);
   //JJ vga.fillRect(0,0,200,150,BLACK);//Repeat Fix visual defect
@@ -327,41 +547,68 @@ unsigned char ShowTinyMenu(const char *cadTitle,const char **ptrValue,unsigned c
 
  aReturn = (aSel!=-1)?aSel:0;
  OSDMenuRowsDisplayScroll(ptrValue,aReturn,aMax);
- 
- while (salir == 0)
- {    
-  if (checkAndCleanKey(KEY_CURSOR_LEFT))
-  {
-   if (aReturn>10) aReturn-=10;
-   OSDMenuRowsDisplayScroll(ptrValue,aReturn,aMax);
-  }
-  if (checkAndCleanKey(KEY_CURSOR_RIGHT))
-  {
-   if (aReturn<(aMax-10)) aReturn+=10;
-   OSDMenuRowsDisplayScroll(ptrValue,aReturn,aMax);
-  }     
 
-  //case SDLK_UP:
-  if (checkAndCleanKey(KEY_CURSOR_UP))
-  {
-   if (aReturn>0) aReturn--;
-   OSDMenuRowsDisplayScroll(ptrValue,aReturn,aMax);
-  }
-  if (checkAndCleanKey(KEY_CURSOR_DOWN))
-  {
-   if (aReturn < (aMax-1)) aReturn++;
-   OSDMenuRowsDisplayScroll(ptrValue,aReturn,aMax);
-  }
-  if (checkAndCleanKey(KEY_ENTER))
-  {
-   salir= 1;
-  }
-  //case SDLK_KP_ENTER: case SDLK_RETURN: salir= 1;break;
-  if (checkAndCleanKey(KEY_ESC))
-  {
-   salir=1; aReturn= 255;    
-  }      
- } 
+ if (gb_show_key4x4 == 1)
+ {
+  ShowKey4x4();
+ }
+  
+ #ifdef use_lib_not_use_ps2keyboard
+  WaitClearAtariDB9();//Espera a dejar de tocar botones
+ #endif 
+
+ while (salir == 0)
+ {
+  gb_currentTime = millis();
+  
+  if ((gb_currentTime-gb_keyboardTime) >= gb_current_ms_poll_keyboard)
+  {    
+   gb_keyboardTime = gb_currentTime;
+   teclaPulsada= 0;
+   if (checkAndCleanKey(KEY_CURSOR_LEFT))
+   {
+    if (aReturn>10) aReturn-=10;
+    OSDMenuRowsDisplayScroll(ptrValue,aReturn,aMax);
+    teclaPulsada= 1;
+   }
+   if (checkAndCleanKey(KEY_CURSOR_RIGHT))
+   {
+    if (aReturn<(aMax-10)) aReturn+=10;
+    OSDMenuRowsDisplayScroll(ptrValue,aReturn,aMax);
+    teclaPulsada= 1;
+   }     
+
+   //case SDLK_UP:
+   if (checkAndCleanKey(KEY_CURSOR_UP))
+   {
+    if (aReturn>0) aReturn--;
+    OSDMenuRowsDisplayScroll(ptrValue,aReturn,aMax);
+    teclaPulsada= 1;
+   }
+   if (checkAndCleanKey(KEY_CURSOR_DOWN))
+   {
+    if (aReturn < (aMax-1)) aReturn++;
+    OSDMenuRowsDisplayScroll(ptrValue,aReturn,aMax);
+    teclaPulsada= 1;
+   }
+   if (checkAndCleanKey(KEY_ENTER))
+   {
+    salir= 1;
+    teclaPulsada= 1;
+   }
+   //case SDLK_KP_ENTER: case SDLK_RETURN: salir= 1;break;
+   if (checkAndCleanKey(KEY_ESC))
+   {
+    salir=1; aReturn= 255;
+    teclaPulsada= 1;
+   }
+
+   if ((gb_show_key4x4 == 1) && (teclaPulsada == 1))
+   {
+    ShowKey4x4();
+   }   
+  }//fin gb_currentTime
+ }//fin salir
  gb_show_osd_main_menu= 0;
 
  //JJ #ifdef use_lib_200x150
@@ -383,22 +630,24 @@ void ShowTinySpeedMenu()
 {
  unsigned char aSelNum,aSelNumSpeed;
  aSelNum = ShowTinyMenu("SPEED VIDEO AUDIO",gb_speed_videoaudio_options_menu,max_gb_speed_videoaudio_options_menu,-1);
- if (aSelNum == 255)
+ if ((aSelNum == 255)||(aSelNum == 3))
+ {
   return;
+ }
  switch (aSelNum)
  {
   case 0: aSelNumSpeed= ShowTinyMenu("AUDIO Poll ms",gb_speed_sound_menu,max_gb_speed_sound_menu,-1);
-   if (aSelNumSpeed == 255)
+   if ((aSelNumSpeed == 255)||(aSelNumSpeed == 7))
     return;
    gb_current_ms_poll_sound= (aSelNumSpeed<<1); //Multiplico x2
    break;
   case 1: aSelNumSpeed= ShowTinyMenu("Video DELAY ms",gb_speed_sound_menu,max_gb_speed_sound_menu,-1);
-   if (aSelNumSpeed == 255)
+   if ((aSelNumSpeed == 255)||(aSelNumSpeed == 7))
     return;
    gb_current_delay_emulate_ms = (aSelNumSpeed<<1);
    break;
   case 2: aSelNumSpeed= ShowTinyMenu("Keyboard Poll ms",gb_speed_sound_menu,max_gb_speed_sound_menu,-1);
-   if (aSelNumSpeed == 255)
+   if ((aSelNumSpeed == 255)||(aSelNumSpeed == 7))
     return;
    gb_current_ms_poll_keyboard= (aSelNumSpeed<<1);
    break;   
@@ -412,6 +661,10 @@ void ShowTinyROMMenu()
 {
  unsigned char aSelNum;   
  aSelNum = ShowTinyMenu("LOAD ROM",gb_list_rom_title,max_list_rom,gb_current_sel_rom);  
+ if (aSelNum==255)
+ {
+  return;
+ }
  CPU_init();
  ResetEmu();
  gb_current_sel_rom = aSelNum;
@@ -424,22 +677,67 @@ void ShowTinyScreenAdjustMenu()
 {
  unsigned char aSelNum, auxCol; 
  aSelNum= ShowTinyMenu("Screen Adjust",gb_osd_screen,max_gb_osd_screen,-1);
+ if ((aSelNum==255)||(aSelNum==1))
+ {
+  return;
+ }
  auxCol= ShowTinyMenu("Pixels",gb_osd_screen_values,max_gb_osd_screen_values,-1);
+ if ((auxCol==255)||(auxCol==5))
+ {
+  return; 
+ }
  auxCol = auxCol<<1; //x2
  gb_screen_xOffset = auxCol;
 }
 
-#define max_gb_reset_menu 2
-const char * gb_reset_menu[max_gb_reset_menu]={
- "Soft",
- "Hard"
-};
+
+//************************
+void ShowVirtualKeyboard()
+{
+ const char carKeys[16]={
+  '1','2','3','4',
+  'Q','W','E','R',
+  'A','S','D','F',
+  'Z','X','C','V'
+ };     
+ 
+ //int origenX = gb_pos_x_menu+60;
+ int origenX = gb_pos_x_virtualKey;
+ int destX= origenX;
+ //int destY= gb_pos_y_menu+10;
+ int destY= gb_pos_y_virtualKey;
+ unsigned char contKey=0;
+ for (unsigned char j=0;j<4;j++)
+ {
+  for (unsigned char i=0;i<4;i++)
+  {
+   if (gb_cur_key_virtual == contKey)
+   {
+    SDLprintCharOSD(carKeys[contKey],destX,destY,ID_COLOR_WHITE,ID_COLOR_BLACK);                          
+   }
+   else
+   {
+    SDLprintCharOSD(carKeys[contKey],destX,destY,ID_COLOR_BLACK,ID_COLOR_WHITE);
+   }
+   contKey++;
+   destX+= 9;
+  }
+  destX= origenX;
+  destY+= 9;
+ } 
+ //SDL_Flip(gb_osd_sdl_surface);
+}
+
 
 //Menu resetear
 void ShowTinyResetMenu()
 {
  unsigned char aSelNum;
  aSelNum= ShowTinyMenu("Reset",gb_reset_menu,max_gb_reset_menu,0);   
+ if ((aSelNum==255)||(aSelNum==2))
+ {
+  return;
+ }
  CPU_init();
  ResetEmu();
  Loadrom2Flash(gb_current_sel_rom);
@@ -447,15 +745,239 @@ void ShowTinyResetMenu()
   ESP.restart(); 
 }
 
+//************************
+void ShowKey4x4()
+{
+ const char carKeys[16]={
+  '1','2','3','4',
+  'Q','W','E','R',
+  'A','S','D','F',
+  'Z','X','C','V'
+ };
+
+      
+ //int origenX = gb_pos_x_menu+60;
+ //int destX= origenX;
+ //int destY= gb_pos_y_menu+10;
+ int origenX = 100;
+ int destX= origenX;
+ int destY= 150;
+
+ unsigned char contKey=0;
+ for (unsigned char j=0;j<4;j++)
+ {
+  for (unsigned char i=0;i<4;i++)
+  {
+   SDLprintCharOSD(carKeys[contKey],destX,destY,ID_COLOR_BLACK,ID_COLOR_WHITE);
+   SDLprintCharOSD(gb_keyRemap[contKey],destX+50,destY,ID_COLOR_BLACK,ID_COLOR_WHITE);
+   contKey++;
+   destX+= 9;
+  }
+  destX= origenX;
+  destY+= 9;
+ }
+ 
+ //destX= origenX;
+ //destY= gb_pos_y_menu+10 +(5*8);
+ origenX= 200;
+ destX= origenX; 
+ destY= 150; 
+ 
+ for (unsigned char j=0;j<3;j++)
+ {
+  for (unsigned char i=0;i<9;i++)
+  {
+   SDLprintCharOSD(' ',destX,destY,ID_COLOR_BLACK,ID_COLOR_WHITE);      
+   destX+= 8;
+  }
+  destX= origenX;
+  destY+= 8;
+ }
+  
+ //destX= origenX;
+ //destY= gb_pos_y_menu+10 +(5*8); 
+ destX= 200;
+ destY= 150; 
+ SDLprintCharOSD(gb_car_key_left,destX,destY+8,ID_COLOR_BLACK,ID_COLOR_WHITE); //Izquierda
+ SDLprintCharOSD(gb_car_key_right,destX+(8*2),destY+8,ID_COLOR_BLACK,ID_COLOR_WHITE); //Derecha
+ SDLprintCharOSD(gb_car_key_up,destX+8,destY,ID_COLOR_BLACK,ID_COLOR_WHITE); //Arriba
+ SDLprintCharOSD(gb_car_key_down,destX+8,destY+(8*2),ID_COLOR_BLACK,ID_COLOR_WHITE); //Abajo
+ SDLprintCharOSD(gb_car_key_a,destX+(8*5),destY+9,ID_COLOR_BLACK,ID_COLOR_WHITE); //A
+ SDLprintCharOSD(gb_car_key_b,destX+(8*7),destY+9,ID_COLOR_BLACK,ID_COLOR_WHITE); //B 
+ 
+ //SDL_Flip(gb_osd_sdl_surface);      
+} 
+
+
+//************************
+void ShowTinyRemapKeysMenu()
+{
+ //1234
+ //qwer
+ //asdf
+ //zxcv
+ unsigned char salir=0;
+ unsigned char idPad,idCar;
+ const unsigned char carGamePad[6]={17,16,30,31,'A','B'};
+ const unsigned char traducePad[16]={1,2,3,0xC, 4,5,6,0xD, 7,8,9, 0xE, 0xA,0,0xB,0x0F};
+ 
+ 
+ unsigned char aSelNum, auxCol;  
+ 
+ while (salir==0)
+ {
+  aSelNum= ShowTinyMenu("Remap Gamepad",gb_osd_gamepad,max_gb_osd_gamepad,-1); 
+  if ((aSelNum==255)||(aSelNum==6))
+  {
+   return;
+  }
+  idPad= aSelNum; 
+  //Serial.printf("Remap Gamepad end\n");
+  //fflush(stdout);
+ 
+
+ //SDLClear(gb_osd_sdl_surface);  
+ 
+  
+ //SDLprintText(gb_osd_sdl_surface,"CHIP8(Spittie)by Ackerman",gb_pos_x_menu-(4<<3),gb_pos_y_menu-16,WHITE,BLACK,1);
+ //for (int i=0;i<20;i++)
+ //{
+ // SDLprintChar(gb_osd_sdl_surface,' ',gb_pos_x_menu+(i<<3),gb_pos_y_menu,BLACK,WHITE,1);
+ //}
+ //SDLprintText(gb_osd_sdl_surface,"Remap Gamepad",gb_pos_x_menu,gb_pos_y_menu,BLACK,WHITE,1);
+ //SDLprintText(gb_osd_sdl_surface,gb_osd_gamepad[0],gb_pos_x_menu+100,gb_pos_y_menu,BLACK,WHITE,1);
+ 
+ //SDL_Flip(gb_osd_sdl_surface);
+
+ 
+  aSelNum= ShowTinyMenu("Key 4x4",gb_osd_key_4x4,max_gb_osd_key_4x4,-1);
+  idCar= aSelNum;
+  //Serial.printf("idCar %d\n",idCar);
+  //fflush(stdout);
+  if ((aSelNum!=255)&&(aSelNum!=16))
+  {
+   for (unsigned char i=0;i<16;i++)
+   {
+    if (gb_keyRemap[i] == carGamePad[idPad])
+    {
+     gb_keyRemap[i]= 32;
+    }
+   }
+
+  
+   switch (idPad)
+   {
+    case 0:     
+     gb_id_key_left= traducePad[idCar];
+     gb_car_key_left= gb_osd_key_4x4[idCar][0];
+     //if (gb_id_key_left == traducePad[idPad]){ gb_id_key_left= 0; gb_car_key_left= 46; }
+     if (gb_car_key_right == gb_osd_key_4x4[idCar][0]){ gb_id_key_right= 0; gb_car_key_right= 46; }
+     if (gb_car_key_up == gb_osd_key_4x4[idCar][0]){ gb_id_key_up= 0; gb_car_key_up= 46;}
+     if (gb_car_key_down == gb_osd_key_4x4[idCar][0]){ gb_id_key_down= 0; gb_car_key_down= 46; }
+     if (gb_car_key_a == gb_osd_key_4x4[idCar][0]){ gb_id_key_a= 0; gb_car_key_a= 46; }
+     if (gb_car_key_b == gb_osd_key_4x4[idCar][0]){ gb_id_key_b= 0; gb_car_key_b= 46; }
+     //Serial.printf("idPad %d gb_id_key_left %d gb_car_key_left %d traducePad %d\n",idPad,gb_id_key_left,gb_car_key_left,traducePad[idPad]);
+     //Serial.printf("L %d R %d U %d D %d\n",gb_id_key_left,gb_id_key_right,gb_id_key_up,gb_id_key_down);
+     //fflush(stdout);
+     break;
+    case 1:
+     gb_id_key_right= traducePad[idCar];
+     gb_car_key_right= gb_osd_key_4x4[idCar][0];
+     if (gb_car_key_left == gb_osd_key_4x4[idCar][0]){ gb_id_key_left= 0; gb_car_key_left= 46; }
+     //if (gb_id_key_right == traducePad[idPad]){ gb_id_key_right= 0; gb_car_key_right= 46; }
+     if (gb_car_key_up == gb_osd_key_4x4[idCar][0]){ gb_id_key_up= 0; gb_car_key_up= 46;}
+     if (gb_car_key_down == gb_osd_key_4x4[idCar][0]){ gb_id_key_down= 0; gb_car_key_down= 46; }
+     if (gb_car_key_a == gb_osd_key_4x4[idCar][0]){ gb_id_key_a= 0; gb_car_key_a= 46; }
+     if (gb_car_key_b == gb_osd_key_4x4[idCar][0]){ gb_id_key_b= 0; gb_car_key_b= 46; }     
+     //Serial.printf("idPad %d gb_id_key_left %d gb_car_key_left %d traducePad %d\n",idPad,gb_id_key_left,gb_car_key_left,traducePad[idPad]);
+     //Serial.printf("L %d R %d U %d D %d\n",gb_id_key_left,gb_id_key_right,gb_id_key_up,gb_id_key_down);     
+     break;
+    case 2:
+     gb_id_key_up= traducePad[idCar];
+     gb_car_key_up= gb_osd_key_4x4[idCar][0];
+     if (gb_car_key_left == gb_osd_key_4x4[idCar][0]){ gb_id_key_left= 0; gb_car_key_left= 46; }
+     if (gb_car_key_right == gb_osd_key_4x4[idCar][0]){ gb_id_key_right= 0; gb_car_key_right= 46; }
+     //if (gb_id_key_up == traducePad[idPad]){ gb_id_key_up= 0; gb_car_key_up= 46;}
+     if (gb_car_key_down == gb_osd_key_4x4[idCar][0]){ gb_id_key_down= 0; gb_car_key_down= 46; }
+     if (gb_car_key_a == gb_osd_key_4x4[idCar][0]){ gb_id_key_a= 0; gb_car_key_a= 46; }
+     if (gb_car_key_b == gb_osd_key_4x4[idCar][0]){ gb_id_key_b= 0; gb_car_key_b= 46; }     
+     //Serial.printf("idPad %d gb_id_key_left %d gb_car_key_left %d traducePad %d\n",idPad,gb_id_key_left,gb_car_key_left,traducePad[idPad]);
+     //Serial.printf("L %d R %d U %d D %d\n",gb_id_key_left,gb_id_key_right,gb_id_key_up,gb_id_key_down);     
+     break;
+    case 3:
+     gb_id_key_down= traducePad[idCar];
+     gb_car_key_down= gb_osd_key_4x4[idCar][0]; 
+     if (gb_car_key_left == gb_osd_key_4x4[idCar][0]){ gb_id_key_left= 0; gb_car_key_left= 46; }
+     if (gb_car_key_right == gb_osd_key_4x4[idCar][0]){ gb_id_key_right= 0; gb_car_key_right= 46; }
+     if (gb_car_key_up == gb_osd_key_4x4[idCar][0]){ gb_id_key_up= 0; gb_car_key_up= 46;}
+     //if (gb_id_key_down == traducePad[idPad]){ gb_id_key_down= 0; gb_car_key_down= 46; }
+     if (gb_car_key_a == gb_osd_key_4x4[idCar][0]){ gb_id_key_a= 0; gb_car_key_a= 46; }
+     if (gb_car_key_b == gb_osd_key_4x4[idCar][0]){ gb_id_key_b= 0; gb_car_key_b= 46; }     
+     //Serial.printf("idPad %d gb_id_key_left %d gb_car_key_left %d traducePad %d\n",idPad,gb_id_key_left,gb_car_key_left,traducePad[idPad]);
+     //Serial.printf("L %d R %d U %d D %d\n",gb_id_key_left,gb_id_key_right,gb_id_key_up,gb_id_key_down);     
+     break;
+    case 4:
+     gb_id_key_a= traducePad[idCar];
+     gb_car_key_a= gb_osd_key_4x4[idCar][0]; 
+     if (gb_car_key_left == gb_osd_key_4x4[idCar][0]){ gb_id_key_left= 0; gb_car_key_left= 46; }
+     if (gb_car_key_right == gb_osd_key_4x4[idCar][0]){ gb_id_key_right= 0; gb_car_key_right= 46; }
+     if (gb_car_key_up == gb_osd_key_4x4[idCar][0]){ gb_id_key_up= 0; gb_car_key_up= 46;}
+     if (gb_id_key_down == traducePad[idPad]){ gb_id_key_down= 0; gb_car_key_down= 46; }
+     //if (gb_car_key_a == gb_osd_key_4x4[idCar][0]){ gb_id_key_a= 0; gb_car_key_a= 46; }
+     if (gb_car_key_b == gb_osd_key_4x4[idCar][0]){ gb_id_key_b= 0; gb_car_key_b= 46; }     
+     //Serial.printf("idPad %d gb_id_key_left %d gb_car_key_left %d traducePad %d\n",idPad,gb_id_key_left,gb_car_key_left,traducePad[idPad]);
+     //Serial.printf("L %d R %d U %d D %d\n",gb_id_key_left,gb_id_key_right,gb_id_key_up,gb_id_key_down);     
+     break;     
+    case 5:
+     gb_id_key_b= traducePad[idCar];
+     gb_car_key_b= gb_osd_key_4x4[idCar][0]; 
+     if (gb_car_key_left == gb_osd_key_4x4[idCar][0]){ gb_id_key_left= 0; gb_car_key_left= 46; }
+     if (gb_car_key_right == gb_osd_key_4x4[idCar][0]){ gb_id_key_right= 0; gb_car_key_right= 46; }
+     if (gb_car_key_up == gb_osd_key_4x4[idCar][0]){ gb_id_key_up= 0; gb_car_key_up= 46;}
+     if (gb_id_key_down == traducePad[idPad]){ gb_id_key_down= 0; gb_car_key_down= 46; }
+     if (gb_car_key_a == gb_osd_key_4x4[idCar][0]){ gb_id_key_a= 0; gb_car_key_a= 46; }
+     //if (gb_car_key_b == gb_osd_key_4x4[idCar][0]){ gb_id_key_b= 0; gb_car_key_b= 46; }
+     //Serial.printf("idPad %d gb_id_key_left %d gb_car_key_left %d traducePad %d\n",idPad,gb_id_key_left,gb_car_key_left,traducePad[idPad]);
+     //Serial.printf("L %d R %d U %d D %d\n",gb_id_key_left,gb_id_key_right,gb_id_key_up,gb_id_key_down);     
+     break;     
+   }   
+   gb_keyRemap[aSelNum]= carGamePad[idPad];
+  }
+  else
+  {
+   salir= 1;
+  }
+ }
+  
+ //SDL_Flip(gb_osd_sdl_surface);
+ 
+ //gb_show_osd_main_menu= 0; 
+}
+
+//***********************************
+void ShowTinyKeyboardVirtual()
+{
+ unsigned char aSelNum;     
+ aSelNum = ShowTinyMenu("KEYBOARD VIRTUAL",gb_keyboard_virtual_menu,max_gb_keyboard_virtual_menu,-1);
+ switch (aSelNum)
+ {
+  case 0: gb_show_key_virtual= 1; break;
+  case 1: gb_show_key_virtual= 0; break;
+ } 
+}
+
 //Very small tiny osd
 void do_tinyOSD() 
 {
  unsigned char aSelNum;
- if (checkAndCleanKey(KEY_F1))
- {
-  gb_show_osd_main_menu= 1;
-  return;
- }
+ #ifdef use_lib_not_use_ps2keyboard
+ #else
+  if (checkAndCleanKey(KEY_F1))
+  {
+   gb_show_osd_main_menu= 1;
+   return;
+  }
+ #endif 
 
  if (gb_show_osd_main_menu == 1)
  {
@@ -465,16 +987,279 @@ void do_tinyOSD()
    case 0: ShowTinyROMMenu(); break;
    case 1: ShowTinySpeedMenu(); break;
    case 2: ShowTinyScreenAdjustMenu(); break;
-   case 3: ShowTinyResetMenu(); break;
+   case 3:
+    gb_show_key4x4= 1;
+    ShowTinyRemapKeysMenu();    
+    gb_show_key4x4= 0;    
+    break;   
+   case 4:
+    ShowTinyKeyboardVirtual();
+    break;
+   case 5: ShowTinyResetMenu(); break;
    default: break;
   }
   //SDLClear(screen); //Borramos pantalla
+  SDL_DumpVGA();
  }
+}
+
+
+//****************************
+void SendVirtualKey(char col, char row)
+{
+ unsigned char auxCar;
+ const unsigned char traducePad[16]={1,2,3,0xC, 4,5,6,0xD, 7,8,9, 0xE, 0xA,0,0xB,0x0F};
+ if ((row<0)||(row>3)||(col<0)||(col>3))
+ {
+  return;
+ }
+ 
+ auxCar= (row*4)+col;
+
+ key[gb_before_key_virtual]= 0;
+ key[traducePad[auxCar]]= 1;
+ gb_before_key_virtual= traducePad[auxCar];
+ 
+ //Serial.printf("SendVirtualKey %d %d\n",auxCar,traducePad[auxCar]);
+ //fflush(stdout);
+}
+
+//********************************
+void SDL_keys_virtual_poll()
+{
+ unsigned char movimiento=0;
+ unsigned char accion=0;
+
+ #ifdef use_lib_not_use_ps2keyboard
+  gb_atari_db9 = 0;
+  if (digitalRead(ATARI_DB9_UP_PIN) == LOW){ gb_atari_db9 |= 0x01; }
+  if (digitalRead(ATARI_DB9_DOWN_PIN) == LOW){ gb_atari_db9 |= 0x02; }
+  if (digitalRead(ATARI_DB9_LEFT_PIN) == LOW){ gb_atari_db9 |= 0x04; }
+  if (digitalRead(ATARI_DB9_RIGHT_PIN) == LOW){ gb_atari_db9 |= 0x08; }
+  if (digitalRead(ATARI_DB9_A_PIN) == LOW){ gb_atari_db9 |= 0x10; }
+  if (digitalRead(ATARI_DB9_B_PIN) == LOW){ gb_atari_db9 |= 0x20; }
+  
+  //if (
+  //    (((gb_atari_db9>>5) & 0x01) == 1)
+  //    &&
+  //    (((gb_atari_db9>>4) & 0x01) == 1)
+  //   )
+  if (
+     (((gb_atari_db9>>gb_use_gamepad_osd_menu_button0) & 0x01) == 1)
+      &&
+      (((gb_atari_db9>>gb_use_gamepad_osd_menu_button1) & 0x01) == 1)
+     )
+  {
+   if (gb_ini_osd_main_menu == 1)
+   {
+    if ((millis() - gb_ini_osd_main_menu_time) >= gb_ms_gamepad_osd_menu)
+    {
+     gb_show_osd_main_menu= 1; //500 ms A B presionado saca menu
+     gb_ini_osd_main_menu = 0;
+    }
+   }
+   else
+   {
+    gb_ini_osd_main_menu = 1; //Arranca timer
+    gb_ini_osd_main_menu_time= millis();
+   }   
+  }
+  else
+  {
+   gb_ini_osd_main_menu = 0;    
+  }
+
+  gb_key_cur_virtual_left = ((gb_atari_db9 & 0x04) == 0x04) ? 1 : 0;
+  gb_key_cur_virtual_right = ((gb_atari_db9 & 0x08) == 0x08) ? 1 : 0;
+  gb_key_cur_virtual_up = ((gb_atari_db9 & 0x01) == 0x01) ? 1 : 0;
+  gb_key_cur_virtual_down = ((gb_atari_db9 & 0x02) == 0x02) ? 1 : 0;
+  gb_key_cur_virtual_a = ((gb_atari_db9 & 0x10) == 0x10) ? 1 : 0;
+
+ if (gb_key_cur_virtual_left != gb_key_before_virtual_left)
+ {
+  gb_key_before_virtual_left = gb_key_cur_virtual_left;
+  if (gb_key_cur_virtual_left == 1)
+  {
+   gb_cur_col_key_virtual--;
+   movimiento=1;
+  }
+ }
+ if (gb_key_cur_virtual_right != gb_key_before_virtual_right)
+ {
+  gb_key_before_virtual_right = gb_key_cur_virtual_right;
+  if (gb_key_cur_virtual_right==1)
+  {
+   gb_cur_col_key_virtual++; 
+   movimiento=1;
+  }
+ }
+ if (gb_key_cur_virtual_up != gb_key_before_virtual_up)
+ {
+  gb_key_before_virtual_up = gb_key_cur_virtual_up;
+  if (gb_key_cur_virtual_up == 1)
+  {
+   gb_cur_row_key_virtual--;
+   movimiento=1;
+  }
+ }
+ if (gb_key_cur_virtual_down != gb_key_before_virtual_down)
+ {
+  gb_key_before_virtual_down = gb_key_cur_virtual_down;
+  if (gb_key_cur_virtual_down == 1)
+  {
+   gb_cur_row_key_virtual++;
+   movimiento=1;
+  }
+ }
+
+
+ if (movimiento == 1)
+ {
+    //Serial.printf("row %d col %d\n",gb_cur_row_key_virtual,gb_cur_col_key_virtual);
+    if (gb_cur_col_key_virtual>3){ gb_cur_col_key_virtual=3; }
+    if (gb_cur_col_key_virtual<0){ gb_cur_col_key_virtual=0; }
+    if (gb_cur_row_key_virtual>3){ gb_cur_row_key_virtual=3; }
+    if (gb_cur_row_key_virtual<0){ gb_cur_row_key_virtual=0; }
+    gb_cur_key_virtual= (gb_cur_row_key_virtual*4) +gb_cur_col_key_virtual;
+    //Serial.printf("gb_cur_key_virtual %d\n",gb_cur_key_virtual);
+    //fflush(stdout);	    
+ }
+ 
+ if (gb_key_cur_virtual_a == 1)
+ {
+  SendVirtualKey(gb_cur_col_key_virtual,gb_cur_row_key_virtual);               
+ }
+ else
+ {
+   key[gb_before_key_virtual]= 0;
+ } 
+
+ #else
+  gb_key_cur_virtual_left = (keymap[KEY_CURSOR_LEFT] == 0)?1:0; //Left
+  gb_key_cur_virtual_right = (keymap[KEY_CURSOR_RIGHT] == 0)?1:0; //Right
+  gb_key_cur_virtual_up = (keymap[KEY_CURSOR_UP] == 0)?1:0; //Up
+  gb_key_cur_virtual_down = (keymap[KEY_CURSOR_DOWN] == 0)?1:0; //Down
+  gb_key_cur_virtual_a = (keymap[PS2_KC_KP0] == 0)?1:0; //A 0 numerico
+
+
+  if (gb_key_cur_virtual_left != gb_key_before_virtual_left)
+  {
+   gb_key_before_virtual_left = gb_key_cur_virtual_left;
+   if (gb_key_cur_virtual_left == 1)
+   {
+    gb_cur_col_key_virtual--;
+    movimiento=1;
+   }
+  }
+  if (gb_key_cur_virtual_right != gb_key_before_virtual_right)
+  {
+   gb_key_before_virtual_right = gb_key_cur_virtual_right;
+   if (gb_key_cur_virtual_right==1)
+   {
+    gb_cur_col_key_virtual++; 
+    movimiento=1;
+   }
+  }
+  if (gb_key_cur_virtual_up != gb_key_before_virtual_up)
+  {
+   gb_key_before_virtual_up = gb_key_cur_virtual_up;
+   if (gb_key_cur_virtual_up == 1)
+   {
+    gb_cur_row_key_virtual--;
+    movimiento=1;
+   }
+  }
+  if (gb_key_cur_virtual_down != gb_key_before_virtual_down)
+  {
+   gb_key_before_virtual_down = gb_key_cur_virtual_down;
+   if (gb_key_cur_virtual_down == 1)
+   {
+    gb_cur_row_key_virtual++;
+    movimiento=1;
+   }
+  }
+
+
+  if (movimiento == 1)
+  {
+   if (gb_cur_col_key_virtual>3){ gb_cur_col_key_virtual=3; }
+   if (gb_cur_col_key_virtual<0){ gb_cur_col_key_virtual=0; }
+   if (gb_cur_row_key_virtual>3){ gb_cur_row_key_virtual=3; }
+   if (gb_cur_row_key_virtual<0){ gb_cur_row_key_virtual=0; }
+   gb_cur_key_virtual= (gb_cur_row_key_virtual*4) +gb_cur_col_key_virtual;
+   //Serial.printf("gb_cur_key_virtual %d\n",gb_cur_key_virtual);
+   //fflush(stdout);	    
+  }
+ 
+  if (gb_key_cur_virtual_a == 1)
+  {
+   //Serial.printf("SendVirtualKey %d %d\n",gb_cur_col_key_virtual,gb_cur_row_key_virtual);    
+   SendVirtualKey(gb_cur_col_key_virtual,gb_cur_row_key_virtual);               
+  }
+  else
+  {
+   //Serial.printf("gb_before_key_virtual %d\n",gb_before_key_virtual);
+   key[gb_before_key_virtual]= 0;
+  }
+ #endif   
 }
 
 //Lectura teclado
 void SDL_keys_poll()
 {
+ #ifdef use_lib_not_use_ps2keyboard
+  gb_atari_db9 = 0;
+  if (digitalRead(ATARI_DB9_UP_PIN) == LOW){ gb_atari_db9 |= 0x01; }
+  if (digitalRead(ATARI_DB9_DOWN_PIN) == LOW){ gb_atari_db9 |= 0x02; }
+  if (digitalRead(ATARI_DB9_LEFT_PIN) == LOW){ gb_atari_db9 |= 0x04; }
+  if (digitalRead(ATARI_DB9_RIGHT_PIN) == LOW){ gb_atari_db9 |= 0x08; }
+  if (digitalRead(ATARI_DB9_A_PIN) == LOW){ gb_atari_db9 |= 0x10; }
+  if (digitalRead(ATARI_DB9_B_PIN) == LOW){ gb_atari_db9 |= 0x20; }
+  
+  //if (
+  //    (((gb_atari_db9>>5) & 0x01) == 1)
+  //    &&
+  //    (((gb_atari_db9>>4) & 0x01) == 1)
+  //   )
+  if (
+     (((gb_atari_db9>>gb_use_gamepad_osd_menu_button0) & 0x01) == 1)
+      &&
+      (((gb_atari_db9>>gb_use_gamepad_osd_menu_button1) & 0x01) == 1)
+     )   
+  {
+   if (gb_ini_osd_main_menu == 1)
+   {
+    if ((millis() - gb_ini_osd_main_menu_time) > 500)
+    {
+     gb_show_osd_main_menu= 1; //500 ms A B presionado saca menu
+     gb_ini_osd_main_menu = 0;
+    }
+   }
+   else
+   {
+    gb_ini_osd_main_menu = 1; //Arranca timer
+    gb_ini_osd_main_menu_time= millis();
+   }   
+  }
+  else
+  {
+   gb_ini_osd_main_menu = 0;    
+  }
+  //if (gb_atari_db9 != gb_atari_db9_prev)
+  //{  
+   //gb_atari_db9_prev= gb_atari_db9;
+  // Serial.printf("%02X\n",gb_atari_db9);
+  //}
+
+  //Gamepad
+  key[gb_id_key_left] =  ((gb_atari_db9 & 0x04) == 0x04) ? 1 : 0; //left
+  key[gb_id_key_right] =  ((gb_atari_db9 & 0x08) == 0x08) ? 1 : 0; //right  
+  key[gb_id_key_up] =  ((gb_atari_db9 & 0x01) == 0x01) ? 1 : 0; //up
+  key[gb_id_key_down] =  ((gb_atari_db9 & 0x02) == 0x02) ? 1 : 0; //down  
+  key[gb_id_key_a] =  ((gb_atari_db9 & 0x10) == 0x10) ? 1 : 0; //A
+  key[gb_id_key_b] =  ((gb_atari_db9 & 0x20) == 0x20) ? 1 : 0; //B
+
+ #else
   key[0x02] = (keymap[PS2_KC_2] == 0)?1:0; //2
   key[0x01] = (keymap[PS2_KC_1] == 0)?1:0; //1
   key[0x03] = (keymap[PS2_KC_3] == 0)?1:0; //3
@@ -492,16 +1277,26 @@ void SDL_keys_poll()
   key[0x0B] = (keymap[PS2_KC_C] == 0)?1:0; //c
   key[0x0F] = (keymap[PS2_KC_V] == 0)?1:0; //v  
 
-  if (keymap[KEY_CURSOR_LEFT] == 0)
-   key[0x04] = 1;
-  if (keymap[KEY_CURSOR_UP] == 0)
-   key[0x05] = 1;
-  if (keymap[KEY_CURSOR_RIGHT] == 0)
-   key[0x06] = 1;
-  if (keymap[KEY_CURSOR_DOWN] == 0)
-   key[0x08] = 1; 
-  if (keymap[KEY_BACKSPACE] == 0)
-   key[0x0F] = 1;
+  //if (keymap[KEY_CURSOR_LEFT] == 0)
+  // key[0x04] = 1;
+  //if (keymap[KEY_CURSOR_UP] == 0)
+  // key[0x05] = 1;
+  //if (keymap[KEY_CURSOR_RIGHT] == 0)
+  // key[0x06] = 1;
+  //if (keymap[KEY_CURSOR_DOWN] == 0)
+  // key[0x08] = 1; 
+  //if (keymap[KEY_BACKSPACE] == 0)
+  // key[0x0F] = 1;
+
+
+  //Gamepad
+  key[gb_id_key_left]= (keymap[KEY_CURSOR_LEFT] == 0)?1:0; //left
+  key[gb_id_key_right]= (keymap[KEY_CURSOR_RIGHT] == 0)?1:0; //right  
+  key[gb_id_key_up]= (keymap[KEY_CURSOR_UP] == 0)?1:0; //up
+  key[gb_id_key_down]= (keymap[KEY_CURSOR_DOWN] == 0)?1:0; //down  
+  key[gb_id_key_a]= (keymap[PS2_KC_KP0] == 0)?1:0;   //A 0 numerico
+  key[gb_id_key_b]= (keymap[PS2_KC_KP_DOT] == 0)?1:0; //B . numerico
+ #endif  
 }
 
 
@@ -756,16 +1551,23 @@ void CPU_loop()
 				
 				V[0xF] = 0;			
 				
-				for(int i=0; i < n; i++) {
-					pixel = ram[I + i];
-					for(int j=0; j < 8; j++) {
-						if((pixel & (0x80 >> j)) != 0) {
-							if(gfx[x+j][y+i] == 1) {
-								V[0xF] = 1;	
-							}
-						gfx[x+j][y+i] ^= 1;
-						}
-					}
+				for(int i=0; i < n; i++) 
+            {
+				 pixel = ram[I + i];
+				 for(int j=0; j < 8; j++) 
+             {
+				  if((pixel & (0x80 >> j)) != 0) 
+              {
+               if (((x+j)< max_gfx_row) && ((y+i)< max_gfx_col))
+               {
+					 if(gfx[x+j][y+i] == 1) 
+                {
+					  V[0xF] = 1;	
+				 	 }
+					 gfx[x+j][y+i] ^= 1;
+               }
+              }
+				 }
 				}
 				
 				draw = 1;
@@ -947,7 +1749,7 @@ void Loadrom2Flash(unsigned char id)
 }
 
 //**************************
- inline void Beep_poll()
+void Beep_poll()
 {//Genera tono aproximado 500 Hz
  if (gbVolMixer == 1)
  {
@@ -973,6 +1775,16 @@ void setup()
 { 
  pinMode(SPEAKER_PIN, OUTPUT);
  digitalWrite(SPEAKER_PIN, LOW);  
+ 
+ #ifdef use_lib_not_use_ps2keyboard
+  //Usar joystick DB9 ATARI
+  pinMode(ATARI_DB9_UP_PIN, INPUT_PULLUP);
+  pinMode(ATARI_DB9_DOWN_PIN, INPUT_PULLUP);
+  pinMode(ATARI_DB9_LEFT_PIN, INPUT_PULLUP);
+  pinMode(ATARI_DB9_RIGHT_PIN, INPUT_PULLUP);
+  pinMode(ATARI_DB9_A_PIN, INPUT_PULLUP);
+  pinMode(ATARI_DB9_B_PIN, INPUT_PULLUP);   
+ #endif 
 
  #ifdef use_lib_log_serial
   Serial.begin(115200);         
@@ -1008,13 +1820,18 @@ void setup()
   Serial.printf("VGA %d\n", ESP.getFreeHeap()); 
  #endif
 
- kb_begin();
+ #ifndef use_lib_not_use_ps2keyboard
+  kb_begin();
+ #endif 
 
  CPU_init();
  ResetEmu();
  Loadrom2Flash(0);
  gb_keyboardTime = gb_currentTime = gb_sdl_time_sound_before= gb_time_ini_beep = millis();
  srand(time(NULL)); //Random
+
+ memset(gb_keyRemap,' ',16); 
+
  #ifdef use_lib_log_serial  
   Serial.printf("END SETUP %d\n", ESP.getFreeHeap()); 
  #endif 
@@ -1033,7 +1850,14 @@ void loop()
  if ((gb_currentTime-gb_keyboardTime) >= gb_current_ms_poll_keyboard)
  {  
   gb_keyboardTime = gb_currentTime;
-  SDL_keys_poll();
+  if (gb_show_key_virtual == 1)
+  {
+   SDL_keys_virtual_poll();
+  }
+  else
+  {
+   SDL_keys_poll();
+  }
  }
 
  do_tinyOSD();
@@ -1046,6 +1870,12 @@ void loop()
   gb_run_emulacion= 0;
   gb_time_ini_espera = millis();
  }
+
+ if (gb_show_key_virtual == 1)
+ {
+  //ShowKey4x4();
+  ShowVirtualKeyboard();
+ }    
 
 
  if (gb_run_emulacion == 1)

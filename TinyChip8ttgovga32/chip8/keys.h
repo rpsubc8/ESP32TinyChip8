@@ -1,6 +1,9 @@
 #ifndef _TECLADO_KEYS_H
  #define _TECLADO_KEYS_H
 
+#include "gbConfig.h"
+#ifndef use_lib_not_use_ps2keyboard
+
 #define KEY_F1 0x05
 #define KEY_F2 0x06
 #define KEY_F3 0x04
@@ -27,5 +30,7 @@
 #define KEY_PAUSE 0xE11477E1F014E077
 #define KEY_BACKSPACE 0x66
 #define KEY_DELETE 0x71
+
+#endif
 
 #endif

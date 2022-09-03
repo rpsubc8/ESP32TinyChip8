@@ -131,6 +131,9 @@
 
 
  #include "gbConfig.h"
+
+#ifndef use_lib_not_use_ps2keyboard
+
  #ifdef FIX_PERIBOARD_NOT_INITING
 
 #include <Arduino.h>
@@ -1015,5 +1018,7 @@ void PS2KeyAdvanced::terminate()
 {
   detachInterrupt(PS2_IrqPin);
 }
+
+#endif
 
 #endif

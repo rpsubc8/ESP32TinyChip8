@@ -57,6 +57,8 @@
 #define PS2KeyTable_h
 
  #include "gbConfig.h"
+#ifndef use_lib_not_use_ps2keyboard
+
  #ifdef FIX_PERIBOARD_NOT_INITING
 
 /* Table contents are pairs of numbers
@@ -257,5 +259,7 @@ const uint8_t scroll_remap[] = {
                 };
 
  #endif
+
+#endif 
 
 #endif
