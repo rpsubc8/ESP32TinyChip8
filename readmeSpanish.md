@@ -133,8 +133,8 @@ El archivo <b>gbConfig.h</b> se seleccionan las opciones:
  <li><b>gb_delay_emulate_ms:</b> Milisegundos de espera por cada frame completado.</li>
  <li><b>gb_ms_gamepad_osd_menu:</b> Milisegundos que hay que tener pulsado los botones <b>gb_use_gamepad_osd_menu_button0</b> y <b>gb_use_gamepad_osd_menu_button1</b> para que se muestre el OSD desde una placa Wemos D1 R32, al sustituir el soporte de teclado PS/2 por un gamepad de norma ATARI.</li>
  <li><b>use_lib_board_wemos:</b> Si se descomenta esta linea, se usará la placa Wemos D1 R32, sustituyendo el soporte de teclado PS/2 por el gamepad ATARI DB9 de 5 botones, o CPC AMSTRAD de 6. También se usará un DAC de 1 bit, que genera blanco y negro.</li>
- <li></b>gb_use_gamepad_osd_menu_button0</b> Uno de los botones que junto con el <b>gb_use_gamepad_osd_menu_button1</b> presionado durante el tiempo <b>use_lib_board_wemos</b> permite mostrar el menú OSD. Las opciones permitidas son ATARI_DB9_UP_ID, ATARI_DB9_DOWN_IDm ATARI_DB9_LEFT_IDm ATARI_DB9_RIGHT_ID, ATARI_DB9_A_ID, ATARI_DB9_B_ID.</li>
- <li></b>gb_use_gamepad_osd_menu_button1</b> Juntándolo con el <b>gb_use_gamepad_osd_menu_button0</b> permite mostrar el menú OSD.</li>
+ <li><b>gb_use_gamepad_osd_menu_button0</b> Uno de los botones que junto con el <b>gb_use_gamepad_osd_menu_button1</b> presionado durante el tiempo <b>use_lib_board_wemos</b> permite mostrar el menú OSD. Las opciones permitidas son ATARI_DB9_UP_ID, ATARI_DB9_DOWN_IDm ATARI_DB9_LEFT_IDm ATARI_DB9_RIGHT_ID, ATARI_DB9_A_ID, ATARI_DB9_B_ID.</li>
+ <li><b>gb_use_gamepad_osd_menu_button1</b> Juntándolo con el <b>gb_use_gamepad_osd_menu_button0</b> permite mostrar el menú OSD.</li>
 </ul>
 
 
