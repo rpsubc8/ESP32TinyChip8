@@ -150,6 +150,7 @@ El valor de la resistencia (metal film) para el DAC VGA, así como el potencióm
 La norma ATARI DB9, usa la resistencia interna <b>Pullup</b>, de ahi que los GPIO 31 al 39 no se puedan usar.<br>
 En monitores VGA muy antigüos, es posible que se deba poner una resistencia de 75 Ohmios en paralelo para adaptar impedancias.<br>
 En casos excepcionales, se recomienda poner en las lineas de VGA HSYNC y VGA VSYNC una resistencia de protección de valor muy bajo, para proteger el pin. Es posible que por motivos externos (error), el monitor VGA introduzca voltaje.<br>
+El conector VGA es femenino, mientras que el DB9 del joystick es masculino.
 
 
 
