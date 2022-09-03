@@ -94,7 +94,7 @@ Para el caso de la placa WEMOS D1 R32, se permite lo mismo, pero el remapeo no e
  <li>A y B</li>
 </ul>
 <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/previewOSDremap.gif'></center>
-El remapeo permite asociar cualquiera (sólo 6) de las teclas del teclado 4x4 del Chip8 a un de las del teclado de movimiento, así como el <b>0</b> y el <b>.</b>, para el caso de la placa TTGO VGA32, mientras que para la WEMOS D1 R32, sería de los 6 posibles botones del gamepad.
+El remapeo permite asociar cualquiera (sólo 6) de las teclas del teclado 4x4 del Chip8 a una de las del teclado de movimiento, así como el <b>0</b> y el <b>.</b>, para el caso de la placa TTGO VGA32, mientras que para la WEMOS D1 R32, sería de los 6 posibles botones del gamepad.
 
 
 
