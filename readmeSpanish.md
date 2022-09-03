@@ -19,7 +19,7 @@ He realizado varias modificaciones:
 
 <br><br>
 <h1>Versión precompilada</h1>
-En la carpeta precompile se encuentra una versión ya compilada para poder ser grabada con el flash download tool 3.9.2. Se trata de una versión con resolución 320x200 con los juegos de demostración en FLASH.<br><br>
+En la carpeta precompile se encuentra una versión ya compilada para poder ser grabada con el flash download tool 3.9.2. Se trata de una versión con resolución 320x200 con los juegos de demostración en FLASH para la TTGO VGA32 v1.x y la Wemos D1 R32.<br><br>
 <a href='https://github.com/rpsubc8/ESP32TinyChip8/tree/main/precompile'>https://github.com/rpsubc8/ESP32TinyChip8/tree/main/precompile</a>
 <br><br>
 Debemos de elegir el tipo ESP32:
