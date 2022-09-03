@@ -72,8 +72,8 @@ Loading is allowed:
  </ul>
  There is a basic OSD of low resources, that is to say, very simple, that is visualized by pressing the key <b>F1</b>.
  <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/previewOSD.gif'></center>  
-  If we use the <b>Wemos D1 R32</b> board, activating this option in the compilation, the OSD will be displayed according to the milliseconds chosen in the <b>gbConfig.h</b> when pressing 2 configurable buttons, which by default will be Up and A, according to the <b>gb_use_gamepad_osd_menu_button0</b> and <b>gb_use_gamepad_osd_menu_button1</b>  
- You can choose the <b>rom</b> by moving with the cursors <b>up</b> and <b>down</b>. We can also move faster with the <b>left</b> and <b>right</b>.
+  If we use the <b>Wemos D1 R32</b> board, activating this option in the compilation, the OSD will be displayed according to the milliseconds chosen in the <b>gbConfig.h</b> when pressing 2 configurable buttons, which by default will be Up and A, according to the <b>gb_use_gamepad_osd_menu_button0</b> and <b>gb_use_gamepad_osd_menu_button1</b>.<br>  
+ You can choose the <b>rom</b> by moving with the cursors <b>up</b> and <b>down</b>. We can also move faster with the <b>left</b> and <b>right</b>.<br>
  The files must be converted to .h in hexadecimal. You can use the online tool:<br>
  <a href='http://tomeko.net/online_tools/file_to_hex.php?lang=en'>http://tomeko.net/online_tools/file_to_hex.php?lang=en</a>
 
@@ -117,7 +117,7 @@ The file <b>gbConfig.h</b> options are selected:
 Multiple test roms have been left, both games, demos and applications.
 
 <br><br>
-<h1>DIY circuito</h1>
+<h1>DIY circuit</h1>
 If we don't want to use a TTGO VGA32 v1.x board, we can build it following fabgl's schematic:
 <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/fabglcircuit.gif'></center>
 
