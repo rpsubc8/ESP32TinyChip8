@@ -46,6 +46,22 @@ Se requiere:
 <h1>Placa Wemos D1 R32</h1>
 Se ha realizado una versión minimalista con un DAC pasivo simple de 1 bit VGA, así como un mando ATARI DB9 con 5 botones, o AMSTRAD CPC de 6.
 <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/PlacaWemosD1R32mod.gif'></center>
+Se debe activar en el <b>gbConfig.h</b> el <b>use_lib_board_wemos</b> para poder usar dicha placa con el soporte único del gamepad ATARI DB9, sin necesidad del teclado PS/2.<br>
+En el archivo <b>hardware.h</b> se encuentra todo el GPIO (pinout).
+<ul>
+ <li>25 - Sonido</li>
+ <li>26 - Arriba gamepad</li>
+ <li>16 - Abajo gamepad</li>
+ <li>27 - Izquierda gamepad</li>
+ <li>14 - Derecha gamepad</li>
+ <li> 4 - Boton A</li>
+ <li> 0 - Botón B</li>
+ <li> 5 - VGA color</li>
+ <li>23 - VGA HSYNC</li>
+ <li>17 - VGA VSYNC</li>
+</ul>
+
+
 
 <br>
 
