@@ -141,7 +141,10 @@ The <b>hardware.h</b> file contains the entire GPIO (pinout).
  <li>17 - VGA VSYNC</li>
 </ul>
 The resistor value (metal film) for the VGA DAC, as well as the logarithmic potentiometer for the audio, is variable, and different values may be needed, depending on the VGA monitor, as well as the headphone line. If you do not connect the headphone output to a preamplifier, it is a good idea to use a passive low pass filter with resistors and capacitors, although given the quality of the CHIP 8, it is not necessary.<br>
-The ATARI DB9 standard uses the internal <b>Pullup</b> resistor, hence GPIO 31 to 39 cannot be used.
+The ATARI DB9 standard uses the internal <b>Pullup</b> resistor, hence GPIO 31 to 39 cannot be used.<br>
+On very old VGA monitors, a 75 Ohm resistor may have to be placed in parallel to match impedances.<br>
+In exceptional cases, it is recommended to put a very low protection resistor on the VGA HSYNC and VGA VSYNC lines to protect the pin. It is possible that for external reasons (error), the VGA monitor introduces voltage.<br>
+The VGA connector is female, while the DB9 joystick connector is male.
 
 <br><br>
 <h1>Tool rom2h</h1>
