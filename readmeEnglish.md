@@ -14,11 +14,12 @@ I have made several modifications:
  <li>Screen adjustment X</li>
  <li>Beeper audio (500 Hz)</li>
  <li>Precompiled version (flash download 3.9.2) 320x200</li>
+ <li>Reduced version (DAC 1 bit) Wemos D1 R32 joystick board standard ATARI DB9</li>
 </ul>
 
 <br><br>
 <h1>Precompiled version</h1>
-In the precompile folder there is a version already compiled to be saved with the flash download tool 3.9.2. It is a version with 320x200 resolution with the demo games in FLASH.<br><br>
+In the precompile folder there is a version already compiled to be saved with the flash download tool 3.9.2. It is a 320x200 resolution version with the demo games in FLASH for the TTGO VGA32 v1.x and the Wemos D1 R32.<br><br>
 <a href='https://github.com/rpsubc8/ESP32TinyChip8/tree/main/precompile'>https://github.com/rpsubc8/ESP32TinyChip8/tree/main/precompile</a>
 <br><br>
 We must choose the ESP32 type:
@@ -33,16 +34,17 @@ And we will press start. If everything has been correct, we will only have to re
 Required:
  <ul>
   <li>TTGO VGA32 v1.x (1.0, 1.1, 1.2, 1.4)</li>
-  <li>Visual Studio 1.48.1 PLATFORMIO 2.2.1 Espressif32 v3.3.2</li>
+  <li>Wemos D1 R32 VGA (DAC 1 bit) ATARI DB9 joystick board</li>
+  <li>Visual Studio 1.66.1 PLATFORMIO 2.5.0 Espressif32 v3.5.0</li>
   <li>Arduino IDE 1.8.11 Espressif System 1.0.6</li>
   <li>Arduino bitluni 0.3.3 reduced library (included in project)</li>
  </ul>
 <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/ttgovga32v12.jpg'></center>
-<br>
- 
 
+ 
+<br><br>
 <h1>PlatformIO</h1>
-PLATFORMIO 2.2.1 must be installed from the Visual Studio extensions. Espressif32 v3.3.2 is also required. 
+PLATFORMIO 2.5.0 must be installed from the Visual Studio extensions. Espressif32 v3.5.0 is also required. 
 <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/previewPlatformIOinstall.gif'></center>
 Then the working directory <b>TinyChip8ttgovga32</b> will be selected.
 We must modify the file <b>platformio.ini</b> the option <b>upload_port</b> to select the COM port where we have our TTGO VGA32 board.
@@ -51,7 +53,7 @@ Then we will proceed to compile and upload to the board. No partitions are used,
 Everything is prepared so we don't have to install the bitluni libraries.
 
 
-<br>
+<br><br>
 <h1>Arduino IDE</h1>
 The whole project is compatible with the structure of Arduino 1.8.11.
 We only have to open the <b>chip8.ino</b> of the <b>chip8</b> directory.
@@ -62,20 +64,38 @@ We can do it from the library manager.
 We must deactivate the PSRAM option, and in case of exceeding 1 MB of binary, select 4 MB of partition when uploading. Although the code does not use PSRAM, if the option is active and our ESP32 does not have it, an exception will be generated and it will be restarted in loop mode.
 
 
-<br>
+<br><br>
 <h1>Usability</h1>
 Loading is allowed:
  <ul>
   <li>ROMS</li>
  </ul>
  There is a basic OSD of low resources, that is to say, very simple, that is visualized by pressing the key <b>F1</b>.
- <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/previewOSD.gif'></center>
+ <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/previewOSD.gif'></center>  
+  If we use the <b>Wemos D1 R32</b> board, activating this option in the compilation, the OSD will be displayed according to the milliseconds chosen in the <b>gbConfig.h</b> when pressing 2 configurable buttons, which by default will be Up and A, according to the <b>gb_use_gamepad_osd_menu_button0</b> and <b>gb_use_gamepad_osd_menu_button1</b>  
  You can choose the <b>rom</b> by moving with the cursors <b>up</b> and <b>down</b>. We can also move faster with the <b>left</b> and <b>right</b>.
  The files must be converted to .h in hexadecimal. You can use the online tool:<br>
  <a href='http://tomeko.net/online_tools/file_to_hex.php?lang=en'>http://tomeko.net/online_tools/file_to_hex.php?lang=en</a>
+
+
+<br><br>
+<h1>Keyboard Remapping</h1>
+The TTGO VGA32 board allows both the use of a virtual keyboard and the possibility of remapping (gamepad remap) the keyboard cursors to the 4x4 keyboard:
+<ul>
+ <li>Up, down, left, right</li>
+ <li>0 and .</li>
+</ul>
+<center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/previewOSDkeyboardvirtual.gif'></center>
+For the case of the WEMOS D1 R32 board, the same is allowed, but the remapping is not of the keyboard, but of the gamepad connected to the DB9, of the possible 6 buttons.
+<ul>
+ <li>Up, down, left, right</li>
+ <li>A y B</li>
+</ul>
+<center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/previewOSDremap.gif'></center>
+The remapping allows to associate any (only 6) of the keys of the 4x4 keyboard of the Chip8 to one of the keys of the motion keyboard, as well as the <b>0</b> and <b>.</b>, for the case of the TTGO VGA32 board, while for the WEMOS D1 R32, it would be of the 6 possible buttons of the gamepad.
+
  
- 
-<br>
+<br><br>
 <h1>Options</h1>
 The file <b>gbConfig.h</b> options are selected:
 <ul>  
@@ -86,9 +106,13 @@ The file <b>gbConfig.h</b> options are selected:
  <li><b>FIX_PERIBOARD_NOT_INITING:</b> David Crespo Tascón's solution for keyboards that do not initialize.</li>
  <li><b>gb_ms_keyboard:</b> You must specify the number of milliseconds of polling for the keyboard.</li>  
  <li><b>gb_delay_emulate_ms:</b> Millisecond wait for each completed frame.</li>
+ <li><b>gb_ms_gamepad_osd_menu:</b> Milliseconds to hold down the <b>gb_use_gamepad_osd_menu_button0</b> and <b>gb_use_gamepad_osd_menu_button1</b> buttons to display the OSD from a Wemos D1 R32 board, when replacing the PS/2 keyboard support with an ATARI standard gamepad.</li>  
+ <li><b>use_lib_board_wemos:</b> If this line is uncommented, the Wemos D1 R32 board will be used, replacing the PS/2 keyboard support with the 5-button ATARI DB9 gamepad, or 6-button CPC AMSTRAD. A 1-bit DAC, which generates black and white, will also be used.</li>
+ <li><b>gb_use_gamepad_osd_menu_button0</b> One of the buttons that together with the <b>gb_use_gamepad_osd_menu_button1</b> pressed during the time <b>use_lib_board_wemos</b> allows to display the OSD menu. The allowed options are ATARI_DB9_UP_ID, ATARI_DB9_DOWN_IDm ATARI_DB9_LEFT_IDm ATARI_DB9_RIGHT_ID, ATARI_DB9_A_ID, ATARI_DB9_B_ID.</li>
+ <li><b>gb_use_gamepad_osd_menu_button1</b> Together with the <b>gb_use_gamepad_osd_menu_button0</b> it allows to display the OSD menu.</li> 
 </ul>
 
-<br>
+<br><br>
 <h1>Test applications</h1>
 Multiple test roms have been left, both games, demos and applications.
 
@@ -96,6 +120,28 @@ Multiple test roms have been left, both games, demos and applications.
 <h1>DIY circuito</h1>
 If we don't want to use a TTGO VGA32 v1.x board, we can build it following fabgl's schematic:
 <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/fabglcircuit.gif'></center>
+
+
+<br><br>
+<h1>DIY Wemos D1 R32</h1>
+A minimalist version has been made with a simple 1-bit VGA passive DAC, as well as a 5-button ATARI DB9 or 6-button AMSTRAD CPC controller.
+<center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/PlacaWemosD1R32mod.gif'></center>
+The <b>use_lib_board_wemos</b> must be enabled in the <b>gbConfig.h</b> to be able to use this board with the unique support of the ATARI DB9 gamepad, without the need of the PS/2 keyboard.<br>
+The <b>hardware.h</b> file contains the entire GPIO (pinout).
+<ul>
+ <li>25 - Sound</li>
+ <li>26 - Up gamepad</li>
+ <li>16 - Down gamepad</li>
+ <li>27 - Left gamepad</li>
+ <li>14 - Right gamepad</li>
+ <li> 4 - Button A</li>
+ <li> 0 - Button B</li>
+ <li> 5 - VGA color</li>
+ <li>23 - VGA HSYNC</li>
+ <li>17 - VGA VSYNC</li>
+</ul>
+The resistor value (metal film) for the VGA DAC, as well as the logarithmic potentiometer for the audio, is variable, and different values may be needed, depending on the VGA monitor, as well as the headphone line. If you do not connect the headphone output to a preamplifier, it is a good idea to use a passive low pass filter with resistors and capacitors, although given the quality of the CHIP 8, it is not necessary.<br>
+The ATARI DB9 standard uses the internal <b>Pullup</b> resistor, hence GPIO 31 to 39 cannot be used.
 
 <br><br>
 <h1>Tool rom2h</h1>
