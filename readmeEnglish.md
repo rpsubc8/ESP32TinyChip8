@@ -73,7 +73,8 @@ Loading is allowed:
  There is a basic OSD of low resources, that is to say, very simple, that is visualized by pressing the key <b>F1</b>.
  <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/previewOSD.gif'></center>  
   If we use the <b>Wemos D1 R32</b> board, activating this option in the compilation, the OSD will be displayed according to the milliseconds chosen in the <b>gbConfig.h</b> when pressing 2 configurable buttons, which by default will be Up and A, according to the <b>gb_use_gamepad_osd_menu_button0</b> and <b>gb_use_gamepad_osd_menu_button1</b>.<br>  
- You can choose the <b>rom</b> by moving with the cursors <b>up</b> and <b>down</b>. We can also move faster with the <b>left</b> and <b>right</b>.<br>
+ You can choose the <b>rom</b> by moving with the cursors <b>up</b> and <b>down</b>.<br>
+ We can also move faster with the <b>left</b> and <b>right</b>.<br>
  The files must be converted to .h in hexadecimal. You can use the online tool:<br>
  <a href='http://tomeko.net/online_tools/file_to_hex.php?lang=en'>http://tomeko.net/online_tools/file_to_hex.php?lang=en</a>
 
@@ -108,8 +109,8 @@ The file <b>gbConfig.h</b> options are selected:
  <li><b>gb_delay_emulate_ms:</b> Millisecond wait for each completed frame.</li>
  <li><b>gb_ms_gamepad_osd_menu:</b> Milliseconds to hold down the <b>gb_use_gamepad_osd_menu_button0</b> and <b>gb_use_gamepad_osd_menu_button1</b> buttons to display the OSD from a Wemos D1 R32 board, when replacing the PS/2 keyboard support with an ATARI standard gamepad.</li>  
  <li><b>use_lib_board_wemos:</b> If this line is uncommented, the Wemos D1 R32 board will be used, replacing the PS/2 keyboard support with the 5-button ATARI DB9 gamepad, or 6-button CPC AMSTRAD. A 1-bit DAC, which generates black and white, will also be used.</li>
- <li><b>gb_use_gamepad_osd_menu_button0</b> One of the buttons that together with the <b>gb_use_gamepad_osd_menu_button1</b> pressed during the time <b>use_lib_board_wemos</b> allows to display the OSD menu. The allowed options are ATARI_DB9_UP_ID, ATARI_DB9_DOWN_IDm ATARI_DB9_LEFT_IDm ATARI_DB9_RIGHT_ID, ATARI_DB9_A_ID, ATARI_DB9_B_ID.</li>
- <li><b>gb_use_gamepad_osd_menu_button1</b> Together with the <b>gb_use_gamepad_osd_menu_button0</b> it allows to display the OSD menu.</li> 
+ <li><b>gb_use_gamepad_osd_menu_button0:</b> One of the buttons that together with the <b>gb_use_gamepad_osd_menu_button1</b> pressed during the time <b>use_lib_board_wemos</b> allows to display the OSD menu. The allowed options are ATARI_DB9_UP_ID, ATARI_DB9_DOWN_ID, ATARI_DB9_LEFT_ID, ATARI_DB9_RIGHT_ID, ATARI_DB9_A_ID, ATARI_DB9_B_ID.</li>
+ <li><b>gb_use_gamepad_osd_menu_button1:</b> Together with the <b>gb_use_gamepad_osd_menu_button0</b> it allows to display the OSD menu.</li> 
 </ul>
 
 <br><br>
