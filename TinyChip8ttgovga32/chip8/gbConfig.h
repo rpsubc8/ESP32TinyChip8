@@ -1,19 +1,33 @@
 #ifndef _GB_CONFIG_H
  #define _GB_CONFIG_H
  
+ //Usa bitluni cvbs video 26 audio 25.Si no usa cvbs, usa VGA
+ //#define use_lib_cvbs_bitluni
+ 
+ //mode PAL, NTSC for default
+ //#define use_lib_cvbs_pal
+
+ //Use DAC output 5 volts (not 3.2 volts) TTGO VGA32
+ //#define use_lib_cvbs_ttgo_vga32
+ 
  //Use board Wemos D1 R32 Joystick ATARI DB9 VGA DAC 1 bit
  //#define use_lib_board_wemos
 
  #ifdef use_lib_board_wemos
   //Use gamepad ATARI DB9, not use keyboard PS/2
-  #define use_lib_not_use_ps2keyboard  
+  #define use_lib_not_use_ps2keyboard
  #endif
 
  //Corrige teclados que no se inicializan(solucion dcrespo3D)
  //#define FIX_PERIBOARD_NOT_INITING
 
  //Usa la libreria bitluni modificada en C tiny fast
- #define use_lib_tinybitluni_fast
+ #ifdef use_lib_cvbs_bitluni
+  //#define use_lib_cvbs_remove_font
+  //#define use_lib_cvbs_remove_triangle
+ #else
+  #define use_lib_tinybitluni_fast
+ #endif 
 
  //Video colors (8 colores es DAC 3 bits) TTGO VGA32 and Wemos D1 R32
  #define use_lib_vga8colors

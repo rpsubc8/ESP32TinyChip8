@@ -3,14 +3,19 @@
 
  #include "gbConfig.h"
 
+ //Si se usa cvbs y no PS/2 el pin 26 pasa a ser pin 12
  #ifdef use_lib_not_use_ps2keyboard
   //Board WEMOS D1 R32 Joystick Gamepad ATARI
-  #define ATARI_DB9_UP_PIN 26    //Up(1)    - 39
-  #define ATARI_DB9_DOWN_PIN 16  //Down(2)  - 38
-  #define ATARI_DB9_LEFT_PIN 27  //Left(3)  - 34
-  #define ATARI_DB9_RIGHT_PIN 14 //Right(4) - 36
+  #ifdef use_lib_cvbs_bitluni
+   #define ATARI_DB9_UP_PIN 12   //Up(1)    - 12
+  #else
+   #define ATARI_DB9_UP_PIN 26   //Up(1)    - 26
+  #endif 
+  #define ATARI_DB9_DOWN_PIN 16  //Down(2)  - 16
+  #define ATARI_DB9_LEFT_PIN 27  //Left(3)  - 27
+  #define ATARI_DB9_RIGHT_PIN 14 //Right(4) - 14
   #define ATARI_DB9_A_PIN 4      //A (6)    - 4
-  #define ATARI_DB9_B_PIN 0      //B (7)    - 2
+  #define ATARI_DB9_B_PIN 0      //B (7)    - 0
                                  //GND (8)
  #else
   //Keyboard                              

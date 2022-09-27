@@ -27,6 +27,38 @@
 #include "vga_6bit.h"
 #include "gb_sdl_font8x8.h"
 
+//BEGIN Seccion CVBS
+#ifdef use_lib_cvbs_bitluni
+ #include "esp_pm.h"
+ #include "CompositeGraphics.h"
+ #include "CompositeOutput.h"
+ //#include "font6x8.h"
+
+ //PAL MAX, half: 324x268 full: 648x536
+ //NTSC MAX, half: 324x224 full: 648x448
+ const int XRES = 320;
+ const int YRES = 200;
+
+ CompositeGraphics graphics(XRES, YRES);
+ #ifdef use_lib_cvbs_pal
+  CompositeOutput composite(CompositeOutput::PAL, XRES * 2, YRES * 2);
+ #else
+  CompositeOutput composite(CompositeOutput::NTSC, XRES * 2, YRES * 2);
+ #endif 
+ //Font<CompositeGraphics> font(6, 8, font6x8::pixels);
+
+ void compositeCore(void *data)
+ {
+  while (true)
+  {
+    //just send the graphics frontbuffer whithout any interruption 
+    composite.sendFrameHalfResolution(&graphics.frame);
+  }
+ } 
+
+#endif 
+//END seccion CVBS
+
  #ifdef use_lib_vga8colors
   //DAC 3 bits 8 colores
   // 3 bit pins
@@ -68,10 +100,16 @@
   };
  #endif
 
+
 unsigned char gb_sync_bits;
 unsigned char **gb_buffer_vga;
 unsigned int **gb_buffer_vga32;
 
+#ifdef use_lib_cvbs_bitluni
+ unsigned char **gb_buffer_cvbs;
+ unsigned int **gb_buffer_cvbs32;
+#else 
+#endif 
 
 
 //VGA3Bit vga;
@@ -124,6 +162,7 @@ static unsigned short int opcode; //uint16_t opcode;
 
 unsigned char quit = 0;
 
+unsigned char gb_auto_delay_cpu = 1; //auto delay
 unsigned char gb_run_emulacion = 1; //Ejecuta la emulacion
 unsigned char gb_current_ms_poll_sound = gb_ms_sound;
 unsigned char gb_screen_xOffset=0;
@@ -204,6 +243,9 @@ void SDL_keys_poll(void);
 void do_tinyOSD(void);
 void Beep_poll(void);
 void PrepareColorsUltraFastVGA(void);
+#ifdef use_lib_cvbs_bitluni
+ void PrepareColorsCVBS(void);
+#endif 
 void SDLClear(void);
 void SDLprintText(const char *cad,int x, int y, unsigned char color,unsigned char backcolor);
 void SDLprintCharOSD(char car,int x,int y,unsigned char color,unsigned char backcolor);
@@ -316,7 +358,11 @@ inline void jj_fast_putpixel(int x,int y,unsigned char c)
  //if ((x<0)||(x>319)||(y<0)||(y>199))
  // return;
 // vga.dotFast(x,y,gb_color_vga[c]);
- gb_buffer_vga[y][x^2]= gb_const_colorNormal[c];
+ #ifdef use_lib_cvbs_bitluni
+  gb_buffer_cvbs[y][x]= gb_const_colorNormal[c];
+ #else
+  gb_buffer_vga[y][x^2]= gb_const_colorNormal[c];
+ #endif 
 }
 
 //***********************************************************
@@ -325,8 +371,13 @@ void SDLClear()
  unsigned int a32= gb_const_colorNormal[0];
  a32= a32|(a32<<8)|(a32<<16)|(a32<<24);
  for (int y=0; y<gb_topeY; y++){
-  for (int x=0; x<gb_topeX_div4; x++){
-   gb_buffer_vga32[y][x]= a32;
+  for (int x=0; x<gb_topeX_div4; x++)
+  {
+   #ifdef use_lib_cvbs_bitluni
+    gb_buffer_cvbs32[y][x]= a32;
+   #else
+    gb_buffer_vga32[y][x]= a32;
+   #endif 
   }
  }
 }
@@ -379,6 +430,34 @@ void PrepareColorsUltraFastVGA()
   }
  #endif
 }
+
+//**********************************
+#ifdef use_lib_cvbs_bitluni
+ //3 voltios
+ //buf  DAC
+ // 0 -  0 - 0v
+ //54 - 77 - 1v
+ //
+ //78/54 = 1,4444444444444444444444444444444
+ //
+ //5 voltios
+ //buf  DAC
+ // 0 -  0 - 0v
+ //35 - 50 - 1v
+ //35,064935064935064935064935064935
+ void PrepareColorsCVBS()
+ {   
+  gb_const_colorNormal[0]= 0;
+  #ifdef use_lib_cvbs_ttgo_vga32
+   //gb_const_colorNormal[1]= 38; //DAC 5v output test 1v   
+   //gb_const_colorNormal[1]= 50; //DAC 5v output 1v TTGO VGA32
+   gb_const_colorNormal[1]= 35; //DAC 5v output 1v TTGO VGA32
+  #else
+   //gb_const_colorNormal[1]= 77; //DAC 3.3v output 1v
+   gb_const_colorNormal[1]= 54; //DAC 3.3v output 1v
+  #endif 
+ }
+#endif 
 
 
 #define max_gb_osd_key_4x4 17
@@ -443,11 +522,19 @@ const char * gb_speed_sound_menu[max_gb_speed_sound_menu]={
  "Exit Menu"
 };
 
-#define max_gb_speed_videoaudio_options_menu 4
+#define max_gb_osd_delay_instructions 3
+const char * gb_osd_delay_instructions[max_gb_osd_delay_instructions]={
+ "(AUTO)",
+ "0",
+ "Exit Menu"
+};
+
+#define max_gb_speed_videoaudio_options_menu 5
 const char * gb_speed_videoaudio_options_menu[max_gb_speed_videoaudio_options_menu]={
  "Audio poll",
  "Video delay",
  "Keyboard poll",
+ "CPU delay",
  "Exit Menu"
 };
 
@@ -630,7 +717,7 @@ void ShowTinySpeedMenu()
 {
  unsigned char aSelNum,aSelNumSpeed;
  aSelNum = ShowTinyMenu("SPEED VIDEO AUDIO",gb_speed_videoaudio_options_menu,max_gb_speed_videoaudio_options_menu,-1);
- if ((aSelNum == 255)||(aSelNum == 3))
+ if ((aSelNum == 255)||(aSelNum == 4))
  {
   return;
  }
@@ -650,7 +737,16 @@ void ShowTinySpeedMenu()
    if ((aSelNumSpeed == 255)||(aSelNumSpeed == 7))
     return;
    gb_current_ms_poll_keyboard= (aSelNumSpeed<<1);
-   break;   
+   break;
+  case 3: aSelNumSpeed= ShowTinyMenu("CPU delay",gb_osd_delay_instructions,max_gb_osd_delay_instructions,-1);
+   if (aSelNumSpeed == 255)
+    return;
+   switch (aSelNumSpeed)
+   {
+    case 0: gb_auto_delay_cpu=1; break;
+    case 1: gb_auto_delay_cpu=0; break;
+   }
+   break;
   default: break;
  }
 }
@@ -1732,10 +1828,18 @@ void SDL_DumpVGA(void)
    //JJ vga.dotFast((ofsX+i+1),ofsY+j+1,aux);//x+1,y+1
    
    aux= (gfx[i][j] == 1)?gb_const_colorNormal[1]:gb_const_colorNormal[0];      
-   gb_buffer_vga[(ofsY+j)][(ofsX+i)^2] = aux; //No uso DMA, hay CPU de sobra
-   gb_buffer_vga[(ofsY+j)][(ofsX+i+1)^2] = aux;
-   gb_buffer_vga[(ofsY+j+1)][(ofsX+i)^2] = aux;
-   gb_buffer_vga[(ofsY+j+1)][(ofsX+i+1)^2] = aux;
+   #ifdef use_lib_cvbs_bitluni
+    gb_buffer_cvbs[(ofsY+j)][(ofsX+i)] = aux; //No uso DMA, hay CPU de sobra
+    gb_buffer_cvbs[(ofsY+j)][(ofsX+i+1)] = aux;
+    gb_buffer_cvbs[(ofsY+j+1)][(ofsX+i)] = aux;
+    gb_buffer_cvbs[(ofsY+j+1)][(ofsX+i+1)] = aux;    
+    //graphics.dot()
+   #else
+    gb_buffer_vga[(ofsY+j)][(ofsX+i)^2] = aux; //No uso DMA, hay CPU de sobra
+    gb_buffer_vga[(ofsY+j)][(ofsX+i+1)^2] = aux;
+    gb_buffer_vga[(ofsY+j+1)][(ofsX+i)^2] = aux;
+    gb_buffer_vga[(ofsY+j+1)][(ofsX+i+1)^2] = aux;
+   #endif 
    ofsX+=2;
   }  
   ofsY+=2;  
@@ -1759,6 +1863,10 @@ void Beep_poll()
    gb_time_ini_beep = gb_currentTime;
    gbCont++;
   }
+  
+  #ifdef use_lib_cvbs_bitluni
+   pinMode(SPEAKER_PIN, OUTPUT); //Obligar a que sea output y el Silencio en DAC1 REG_CLR_BIT
+  #endif 
   if ((gbCont & 0x01)==0x01)
    digitalWrite(SPEAKER_PIN, HIGH);
   else 
@@ -1793,28 +1901,51 @@ void setup()
  
  #ifdef use_lib_200x150
   //JJ vga.init(vga.MODE200x150, RED_PIN_3B, GRE_PIN_3B, BLU_PIN_3B, HSYNC_PIN, VSYNC_PIN);       
-  vga_init(pin_config,VgaMode_vga_mode_200x150,false); //Llamada en C   
+  #ifdef use_lib_cvbs_bitluni
+  #else
+   vga_init(pin_config,VgaMode_vga_mode_200x150,false); //Llamada en C   
+  #endif 
  #else
-  //JJ vga.init(vga.MODE320x200, RED_PIN_3B, GRE_PIN_3B, BLU_PIN_3B, HSYNC_PIN, VSYNC_PIN);    
-  vga_init(pin_config,VgaMode_vga_mode_320x200,false); //Llamada en C
+  //JJ vga.init(vga.MODE320x200, RED_PIN_3B, GRE_PIN_3B, BLU_PIN_3B, HSYNC_PIN, VSYNC_PIN);
+  #ifdef use_lib_cvbs_bitluni
+  #else
+   vga_init(pin_config,VgaMode_vga_mode_320x200,false); //Llamada en C
+  #endif 
  #endif
  
  //vga.setFont(Font6x8);
  //vga.clear(BLACK);
 
- gb_sync_bits= vga_get_sync_bits();
- gb_buffer_vga = vga_get_framebuffer();
- gb_buffer_vga32=(unsigned int **)gb_buffer_vga;
- PrepareColorsUltraFastVGA(); //Llamar despues de tener gb_sync_bits 
- SDLClear();
- 
- #ifdef use_lib_200x150
-   //JJ vga.fillRect(0,0,200,150,BLACK);
-   //JJ  vga.fillRect(0,0,200,150,BLACK);//fix mode fast video
+ #ifdef use_lib_cvbs_bitluni
+  esp_pm_lock_handle_t powerManagementLock;
+  esp_pm_lock_create(ESP_PM_CPU_FREQ_MAX, 0, "compositeCorePerformanceLock", &powerManagementLock);
+  esp_pm_lock_acquire(powerManagementLock);
+  composite.init();
+  graphics.init();
+  //graphics.setFont(font);
+  xTaskCreatePinnedToCore(compositeCore, "compositeCoreTask", 1024, NULL, 1, NULL, 0);
+  gb_buffer_cvbs= (unsigned char **)graphics.backbuffer;
+  gb_buffer_cvbs32= (unsigned int **)graphics.backbuffer;
+  PrepareColorsCVBS(); //Llamar despues de tener gb_sync_bits 
+  SDLClear();
+  graphics.begin(0);
+  graphics.fillRect(0, 0, 319, 199, 0);
+  graphics.end();
  #else
-   //JJ vga.fillRect(0,0,320,200,BLACK);
-   //JJ vga.fillRect(0,0,320,200,BLACK);//fix mode fast video
- #endif
+  gb_sync_bits= vga_get_sync_bits();
+  gb_buffer_vga = vga_get_framebuffer();
+  gb_buffer_vga32=(unsigned int **)gb_buffer_vga;
+  PrepareColorsUltraFastVGA(); //Llamar despues de tener gb_sync_bits 
+  SDLClear();
+ #endif 
+ 
+ //#ifdef use_lib_200x150
+ //  //JJ vga.fillRect(0,0,200,150,BLACK);
+ //  //JJ  vga.fillRect(0,0,200,150,BLACK);//fix mode fast video
+ //#else
+ //  //JJ vga.fillRect(0,0,320,200,BLACK);
+ //  //JJ vga.fillRect(0,0,320,200,BLACK);//fix mode fast video
+ //#endif
  
  #ifdef use_lib_log_serial
   Serial.printf("VGA %d\n", ESP.getFreeHeap()); 
@@ -1911,6 +2042,11 @@ void loop()
   {
    gb_run_emulacion = 1;  
   }
+ }
+
+ if (gb_auto_delay_cpu == 0)
+ {
+  gb_run_emulacion = 1;
  }
  
  Beep_poll();
