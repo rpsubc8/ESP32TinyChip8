@@ -15,6 +15,7 @@ He realizado varias modificaciones:
  <li>Beeper audio (500 Hz)</li>
  <li>Versión precompilada modo de video 320x200</li>
  <li>Versión reducida (DAC 1 bit) placa Wemos D1 R32 joystick norma ATARI DB9</li>
+ <li>Soporte CVBS (PAL,NTSC) en WEMOS D1 R32 (pin 26) y TTGO VGA32 v1.x (pin 26 CLK mouse)</li>
 </ul>
 
 <br><br>
