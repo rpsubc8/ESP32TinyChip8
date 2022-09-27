@@ -15,7 +15,7 @@ He realizado varias modificaciones:
  <li>Beeper audio (500 Hz)</li>
  <li>Versión precompilada modo de video 320x200</li>
  <li>Versión reducida (DAC 1 bit) placa Wemos D1 R32 joystick norma ATARI DB9</li>
- <li>Soporte CVBS (PAL,NTSC) en WEMOS D1 R32 (pin 26) y TTGO VGA32 v1.x (GPIO 26 CLK mouse)</li>
+ <li>Soporte CVBS (PAL,NTSC) en WEMOS D1 R32 (GPIO 26) y TTGO VGA32 v1.x (GPIO 26 CLK mouse)</li>
 </ul>
 
 <br><br>
@@ -115,9 +115,9 @@ El archivo <b>gbConfig.h</b> se seleccionan las opciones:
  <li><b>use_lib_board_wemos:</b> Si se descomenta esta linea, se usará la placa Wemos D1 R32, sustituyendo el soporte de teclado PS/2 por el gamepad ATARI DB9 de 5 botones, o CPC AMSTRAD de 6. También se usará un DAC de 1 bit, que genera blanco y negro.</li>
  <li><b>gb_use_gamepad_osd_menu_button0:</b> Uno de los botones que junto con el <b>gb_use_gamepad_osd_menu_button1</b> presionado durante el tiempo <b>use_lib_board_wemos</b> permite mostrar el menú OSD. Las opciones permitidas son ATARI_DB9_UP_ID, ATARI_DB9_DOWN_ID, ATARI_DB9_LEFT_ID, ATARI_DB9_RIGHT_ID, ATARI_DB9_A_ID, ATARI_DB9_B_ID.</li>
  <li><b>gb_use_gamepad_osd_menu_button1:</b> Juntándolo con el <b>gb_use_gamepad_osd_menu_button0</b> permite mostrar el menú OSD.</li>
- <li><b>use_lib_cvbs_bitluni:</b> Activa la salida CVBS en blanco y negro en la placa TTGO VGA32 v1.x (GPIO 26). En el caso de usar la WEMOS, dado que el GPIO26 se usa para el gamepad (botón arriba), se debe sustituir el cable que antes se encargaba de dicho botón al GPIO 12. La placa TTGO VGA32 usa un DAC con salida 5v por el mosfet, mientras que la WEMOS es 3.2v. Asegurarse de elegir la opción use_lib_cvbs_ttgo_vga32</li>
- <li><b>use_lib_cvbs_pal:</b> Por defecto en el modo CVBS se usa salida NTSC. Si se descomenta, se activará la salida PAL</li>
- <li><b>use_lib_cvbs_ttgo_vga32:</b> En la placa TTGO VGA32 la salida del GPIO 26 utiliza un mosfet con 5v, por lo que el DAC a medio valor supero el pico de 1v. Si se activa esta opción, sólo necesaria en la placa TTGO VGA32, permitirá salida de 1v</li>
+ <li><b>use_lib_cvbs_bitluni:</b> Activa la salida CVBS en blanco y negro en la placa TTGO VGA32 v1.x (GPIO 26). En el caso de usar la WEMOS, dado que el GPIO26 se usa para el gamepad (botón arriba), se debe sustituir el cable que antes se encargaba de dicho botón al GPIO 12. La placa TTGO VGA32 usa un DAC con salida 5v por el mosfet, mientras que la WEMOS es 3.2v. Asegurarse de elegir la opción use_lib_cvbs_ttgo_vga32.</li>
+ <li><b>use_lib_cvbs_pal:</b> Por defecto en el modo CVBS se usa salida NTSC. Si se descomenta, se activará la salida PAL.</li>
+ <li><b>use_lib_cvbs_ttgo_vga32:</b> En la placa TTGO VGA32 la salida del GPIO 26 utiliza un mosfet con 5v, por lo que el DAC a medio valor supero el pico de 1v. Si se activa esta opción, sólo necesaria en la placa TTGO VGA32, permitirá salida de 1v.</li>
 </ul>
 
 
