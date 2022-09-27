@@ -15,7 +15,7 @@ I have made several modifications:
  <li>Beeper audio (500 Hz)</li>
  <li>Precompiled version (flash download 3.9.2) 320x200</li>
  <li>Reduced version (DAC 1 bit) Wemos D1 R32 joystick board standard ATARI DB9</li>
- <li>CVBS support (PAL,NTSC) on WEMOS D1 R32 (pin 26) and TTGO VGA32 v1.x (GPIO 26 CLK mouse)</li>
+ <li>CVBS support (PAL,NTSC) on WEMOS D1 R32 (GPIO 26) and TTGO VGA32 v1.x (GPIO 26 CLK mouse)</li>
 </ul>
 
 <br><br>
