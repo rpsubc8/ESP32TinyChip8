@@ -111,7 +111,10 @@ The file <b>gbConfig.h</b> options are selected:
  <li><b>gb_ms_gamepad_osd_menu:</b> Milliseconds to hold down the <b>gb_use_gamepad_osd_menu_button0</b> and <b>gb_use_gamepad_osd_menu_button1</b> buttons to display the OSD from a Wemos D1 R32 board, when replacing the PS/2 keyboard support with an ATARI standard gamepad.</li>  
  <li><b>use_lib_board_wemos:</b> If this line is uncommented, the Wemos D1 R32 board will be used, replacing the PS/2 keyboard support with the 5-button ATARI DB9 gamepad, or 6-button CPC AMSTRAD. A 1-bit DAC, which generates black and white, will also be used.</li>
  <li><b>gb_use_gamepad_osd_menu_button0:</b> One of the buttons that together with the <b>gb_use_gamepad_osd_menu_button1</b> pressed during the time <b>use_lib_board_wemos</b> allows to display the OSD menu. The allowed options are ATARI_DB9_UP_ID, ATARI_DB9_DOWN_ID, ATARI_DB9_LEFT_ID, ATARI_DB9_RIGHT_ID, ATARI_DB9_A_ID, ATARI_DB9_B_ID.</li>
- <li><b>gb_use_gamepad_osd_menu_button1:</b> Together with the <b>gb_use_gamepad_osd_menu_button0</b> it allows to display the OSD menu.</li> 
+ <li><b>gb_use_gamepad_osd_menu_button1:</b> Together with the <b>gb_use_gamepad_osd_menu_button0</b> it allows to display the OSD menu.</li>
+ <li><b>use_lib_cvbs_bitluni:</b> Activate the black and white CVBS output on the TTGO VGA32 v1.x board (GPIO 26). In the case of using the WEMOS, since GPIO26 is used for the gamepad (button up), you must replace the cable that previously handled that button to GPIO 12. The TTGO VGA32 board uses a DAC with 5v output through the mosfet, while the WEMOS is 3.2v. Make sure to choose the use_lib_cvbs_ttgo_vga32 option.</li>
+ <li><b>use_lib_cvbs_pal:</b> By default in CVBS mode, NTSC output is used. If decompressed, PAL output will be activated.</li>
+ <li><b>use_lib_cvbs_ttgo_vga32:</b> On the TTGO VGA32 board the GPIO 26 output uses a 5v mosfet, so the DAC at half value overcomes the 1v peak. If this option is enabled, only necessary on the TTGO VGA32 board, it will allow 1v output.</li>
 </ul>
 
 <br><br>
