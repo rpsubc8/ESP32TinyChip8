@@ -15,7 +15,7 @@ I have made several modifications:
  <li>Beeper audio (500 Hz)</li>
  <li>Precompiled version (flash download 3.9.2) 320x200</li>
  <li>Reduced version (DAC 1 bit) Wemos D1 R32 joystick board standard ATARI DB9</li>
- <li>CVBS support (PAL,NTSC) on WEMOS D1 R32 (GPIO 26) and TTGO VGA32 v1.x (GPIO 26 CLK mouse)</li>
+ <li>CVBS support (PAL,NTSC) on WEMOS D1 R32 (GPIO 26) and TTGO VGA32 v1.x (GPIO 26 CLK mouse). Pay attention that the video output of the TTGO VGA32 board works with 5v, while in Wemos D1 R32 it is 3v. With the DAC reduction, the Wemos is limited to 1 volt, but the TTGO is not, unless you choose it in the <b>gbConfig.h.</b></li>
 </ul>
 
 <br><br>
@@ -125,11 +125,16 @@ Multiple test roms have been left, both games, demos and applications.
 <h1>DIY circuit</h1>
 If we don't want to use a TTGO VGA32 v1.x board, we can build it following fabgl's schematic:
 <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/fabglcircuit.gif'></center>
-
+In case you want cvbs video output, instead of VGA, you must take a direct cable from pin 26 of the PS/2 connector of the mouse, activating the option <b>use_lib_cvbs_pal</b>, as well as <b>use_lib_cvbs_ttgo_vga32</b> of the <b>gbConfig.h</b>. If we do not activate this option, the output will be more than 1 volt, having to be reduced with a voltage reducer (potentiometer).
+<center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/ps2.gif'></center>
+The PS/2 connector is seen from the board's own jack, i.e. female jack. The pin on PS/2 is CLK, i.e. 5.
+<center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/ttgops2cvbs.gif'></center>
+In this picture you can see the internal SOT23 mosfet of the TTGO VGA32 board, so the output at CLK (pin 5) is 5 volts.
 
 <br><br>
 <h1>DIY Wemos D1 R32</h1>
-A minimalist version has been made with a simple 1-bit VGA passive DAC, as well as a 5-button ATARI DB9 or 6-button AMSTRAD CPC controller.
+A minimalist version has been made with a simple 1-bit VGA passive DAC, as well as a 5-button ATARI DB9 or 6-button AMSTRAD CPC controller.<br>
+In the case of VGA support, we would be left with:
 <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/PlacaWemosD1R32mod.gif'></center>
 The <b>use_lib_board_wemos</b> must be enabled in the <b>gbConfig.h</b> to be able to use this board with the unique support of the ATARI DB9 gamepad, without the need of the PS/2 keyboard.<br>
 The <b>hardware.h</b> file contains the entire GPIO (pinout).
@@ -145,6 +150,22 @@ The <b>hardware.h</b> file contains the entire GPIO (pinout).
  <li>23 - VGA HSYNC</li>
  <li>17 - VGA VSYNC</li>
 </ul>
+For the case of cvbs support, we would be left with:
+<center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/PlacaWemosD1R32cvbsmod.gif'></center>
+The <b>use_lib_board_wemos</b> must be enabled in the <b>gbConfig.h</b> to be able to use this board with the unique support of the ATARI DB9 gamepad, without the need of the PS/2 keyboard.<br>
+We must activate the cvbs option with use_lib_cvbs_bitluni instead of VGA, being able to choose PAL or NTSC with <b>use_lib_cvbs_pal</b>. In case of using TTGO VGA32 board, pay attention to <b>use_lib_cvbs_ttgo_vga32</b> not to exceed 1v video output.<br>
+The <b>hardware.h</b> file contains the entire GPIO (pinout).
+<ul>
+ <li>25 - Sound</li>
+ <li>12 - Up gamepad</li>
+ <li>16 - Down gamepad</li>
+ <li>27 - Left gamepad</li>
+ <li>14 - Right gamepad</li>
+ <li> 4 - Button A</li>
+ <li> 0 - Button B</li>
+ <li>26 - cvbs</li>
+ </ul>
+
 The resistor value (metal film) for the VGA DAC, as well as the logarithmic potentiometer for the audio, is variable, and different values may be needed, depending on the VGA monitor, as well as the headphone line. If you do not connect the headphone output to a preamplifier, it is a good idea to use a passive low pass filter with resistors and capacitors, although given the quality of the CHIP 8, it is not necessary.<br>
 The ATARI DB9 standard uses the internal <b>Pullup</b> resistor, hence GPIO 31 to 39 cannot be used.<br>
 On very old VGA monitors, a 75 Ohm resistor may have to be placed in parallel to match impedances.<br>
