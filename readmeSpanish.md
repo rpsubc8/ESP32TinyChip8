@@ -117,7 +117,7 @@ El archivo <b>gbConfig.h</b> se seleccionan las opciones:
  <li><b>gb_use_gamepad_osd_menu_button1:</b> Juntándolo con el <b>gb_use_gamepad_osd_menu_button0</b> permite mostrar el menú OSD.</li>
  <li><b>use_lib_cvbs_bitluni:</b> Activa la salida CVBS en blanco y negro en la placa TTGO VGA32 v1.x (GPIO 26). En el caso de usar la WEMOS, dado que el GPIO26 se usa para el gamepad (botón arriba), se debe sustituir el cable que antes se encargaba de dicho botón al GPIO 12. La placa TTGO VGA32 usa un DAC con salida 5v por el mosfet, mientras que la WEMOS es 3.2v. Asegurarse de elegir la opción use_lib_cvbs_ttgo_vga32.</li>
  <li><b>use_lib_cvbs_pal:</b> Por defecto en el modo CVBS se usa salida NTSC. Si se descomenta, se activará la salida PAL.</li>
- <li><b>use_lib_cvbs_ttgo_vga32:</b> En la placa TTGO VGA32 la salida del GPIO 26 utiliza un mosfet con 5v, por lo que el DAC a medio valor supero el pico de 1v. Si se activa esta opción, sólo necesaria en la placa TTGO VGA32, permitirá salida de 1v.</li>
+ <li><b>use_lib_cvbs_ttgo_vga32:</b> En la placa TTGO VGA32 la salida del GPIO 26 utiliza un mosfet con 5v, por lo que el DAC a medio valor supero el pico de 1v. Si se activa esta opción, necesaria en la placa TTGO VGA32, permitirá salida de 1v.</li>
 </ul>
 
 
@@ -134,7 +134,8 @@ Si no queremos usar una placa TTGO VGA32 v1.x, podemos construirla siguiendo el 
 
 <br><br>
 <h1>DIY Wemos D1 R32</h1>
-Se ha realizado una versión minimalista con un DAC pasivo simple de 1 bit VGA, así como un mando ATARI DB9 con 5 botones, o AMSTRAD CPC de 6.
+Se ha realizado una versión minimalista con un DAC pasivo simple de 1 bit VGA, así como un mando ATARI DB9 con 5 botones, o AMSTRAD CPC de 6.<br>
+Para el caso del soporte VGA, nos quedaría:
 <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/PlacaWemosD1R32mod.gif'></center>
 Se debe activar en el <b>gbConfig.h</b> el <b>use_lib_board_wemos</b> para poder usar dicha placa con el soporte único del gamepad ATARI DB9, sin necesidad del teclado PS/2.<br>
 En el archivo <b>hardware.h</b> se encuentra todo el GPIO (pinout).
@@ -150,6 +151,25 @@ En el archivo <b>hardware.h</b> se encuentra todo el GPIO (pinout).
  <li>23 - VGA HSYNC</li>
  <li>17 - VGA VSYNC</li>
 </ul>
+
+Para el caso del soporte cvbs, nos quedaría:
+<center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/PlacaWemosD1R32cvbsmod.gif'></center>
+Se debe activar en el <b>gbConfig.h</b> el <b>use_lib_board_wemos</b> para poder usar dicha placa con el soporte único del gamepad ATARI DB9, sin necesidad del teclado PS/2.<br>
+Debemos activar la opción cvbs con <b>use_lib_cvbs_bitluni</b> en lugar de VGA, pudiendo elegir PAL o NTSC con <b>use_lib_cvbs_pal</b>. En caso de usar la placa TTGO VGA32, prestar atención al <b>use_lib_cvbs_ttgo_vga32</b> para no superar 1v de salida de video.<br>
+En el archivo <b>hardware.h</b> se encuentra todo el GPIO (pinout).
+<ul>
+ <li>25 - Sonido</li>
+ <li>12 - Arriba gamepad</li>
+ <li>16 - Abajo gamepad</li>
+ <li>27 - Izquierda gamepad</li>
+ <li>14 - Derecha gamepad</li>
+ <li> 4 - Boton A</li>
+ <li> 0 - Botón B</li>
+ <li>26 - cvbs</li>
+</ul>
+
+
+
 El valor de la resistencia (metal film) para el DAC VGA, así como el potenciómetro logarítmico para el audio, es variable, y puede que se necesiten diferentes valores, en función del monitor VGA, así como de la línea de auriculares. Si no conectamos la salida de auriculares a un preamplificador, es buena idea usar un filtro pasivo paso bajo con resistencias y condensadores, aunque dado la calidad del CHIP 8, no es necesario.<br>
 La norma ATARI DB9, usa la resistencia interna <b>Pullup</b>, de ahi que los GPIO 31 al 39 no se puedan usar.<br>
 En monitores VGA muy antigüos, es posible que se deba poner una resistencia de 75 Ohmios en paralelo para adaptar impedancias.<br>
