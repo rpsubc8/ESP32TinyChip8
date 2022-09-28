@@ -15,7 +15,7 @@ He realizado varias modificaciones:
  <li>Beeper audio (500 Hz)</li>
  <li>Versión precompilada modo de video 320x200</li>
  <li>Versión reducida (DAC 1 bit) placa Wemos D1 R32 joystick norma ATARI DB9</li>
- <li>Soporte CVBS (PAL,NTSC) en WEMOS D1 R32 (GPIO 26) y TTGO VGA32 v1.x (GPIO 26 CLK mouse)</li>
+ <li>Soporte CVBS (PAL,NTSC) en WEMOS D1 R32 (GPIO 26) y TTGO VGA32 v1.x (GPIO 26 CLK mouse). Prestar atención a que la salida de video de la placa TTGO VGA32 trabaja con 5v, mientras que en Wemos D1 R32 es de 3v. Con la reducción del DAC, en la Wemos se limita a 1 voltios, pero la TTGO, no, salvo que se elija en el <b>gbConfig.h</b></li>
 </ul>
 
 <br><br>
@@ -134,6 +134,7 @@ Para el caso de querer salida de video cvbs, en lugar de VGA, debemos de sacar u
 <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/ps2.gif'></center>
 El conector de PS/2 es visto desde el propio jack de la placa, es decir, jack hembra. El pin en PS/2 es el CLK, es decir, el 5.
 <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/ttgops2cvbs.gif'></center>
+En esta imagen se puede ver el mosfet SOT23 interno de la placa TTGO VGA32, de manera, que la salida en CLK (pin 5) es 5 voltios.
 
 <br><br>
 <h1>DIY Wemos D1 R32</h1>
