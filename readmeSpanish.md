@@ -15,7 +15,7 @@ He realizado varias modificaciones:
  <li>Beeper audio (500 Hz)</li>
  <li>Versión precompilada modo de video 320x200</li>
  <li>Versión reducida (DAC 1 bit) placa Wemos D1 R32 joystick norma ATARI DB9</li>
- <li>Soporte CVBS (PAL,NTSC) en WEMOS D1 R32 (GPIO 26) y TTGO VGA32 v1.x (GPIO 26 CLK mouse). Prestar atención a que la salida de video de la placa TTGO VGA32 trabaja con 5v, mientras que en Wemos D1 R32 es de 3v. Con la reducción del DAC, en la Wemos se limita a 1 voltios, pero la TTGO, no, salvo que se elija en el <b>gbConfig.h</b></li>
+ <li>Soporte CVBS (PAL,NTSC) en WEMOS D1 R32 (GPIO 26) y TTGO VGA32 v1.x (GPIO 26 CLK mouse). Prestar atención a que la salida de video de la placa TTGO VGA32 trabaja con 5v, mientras que en Wemos D1 R32 es de 3v. Con la reducción del DAC, en la Wemos se limita a 1 voltio, pero la TTGO, no, salvo que se elija en el <b>gbConfig.h</b></li>
 </ul>
 
 <br><br>
