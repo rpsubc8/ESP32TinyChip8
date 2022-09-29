@@ -181,6 +181,37 @@ En monitores VGA muy antigüos, es posible que se deba poner una resistencia de 
 En casos excepcionales, se recomienda poner en las lineas de VGA HSYNC y VGA VSYNC una resistencia de protección de valor muy bajo, para proteger el pin. Es posible que por motivos externos (error), el monitor VGA introduzca voltaje.<br>
 El conector VGA es femenino, mientras que el DB9 del joystick es masculino.
 
+<br><br>
+<h1>Test DAC cvbs</h1>
+Para TTGO VGA32 como la salida es 5v, o hacemos reducción de voltaje o podemos reducir la escala del DAC. En 3.3v de salida, con máximo el valor de 77, ya nos daría 0.99v, que sería 1v. Si tenemos 5v de salida, con 50, ya tenemos 0.97v, que sería 1v. De esta forma, ya no necesitamos resistencias reductoras, es el cable directo. Mientras no nos pasemos de 77 en 3.3v o 50 en 5v, no tendremos problema, sobre todo si sólo necesitamos 2 colores (blanco y negro).
+Podemos hacer pruebas con un multímetro, sobre todo en la TTGO VGA32 v1.x:
+<pre>
+//WEMOS D1 R32  Pin 26
+//DAC - Voltaje
+//  0 - 0.06
+// 38 - 0.52
+// 77 - 1
+//255 - 3.17
+
+#include <Arduino.h>
+#include <driver/dac.h>
+
+const int arrayValue[4]={0,38,77,255};
+unsigned char cont=0;
+
+void setup() {
+ Serial.begin(115200);
+ dac_output_enable(DAC_CHANNEL_2);
+}
+
+void loop() {
+ dac_output_voltage(DAC_CHANNEL_2, arrayValue[cont]);
+ Serial.printf("%d\n",arrayValue[cont]);
+ delay(4000);
+ cont++;
+ cont &= 0x03;
+}
+</pre>
 
 
 <br><br>
