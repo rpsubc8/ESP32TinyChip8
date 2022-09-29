@@ -5,7 +5,7 @@ Port del emulador Chip8 (Spittie) a la placa TTGO VGA32 v1.x (1.0, 1.1, 1.2, 1.4
 He realizado varias modificaciones:
 <ul>
  <li>Funcionando en ESP32 de 520 KB de RAM (TTGO VGA32)</li>  
- <li>Uso de un sólo core</li>
+ <li>Uso de un sólo core en VGA. Para cvbs se usan 2 cores.</li>
  <li>OSD de bajos recursos</li>
  <li>Creado proyecto compatible con Arduino IDE y Platform IO</li> 
  <li>Carga de ROMs en Flash progmem</li>    
@@ -15,7 +15,7 @@ He realizado varias modificaciones:
  <li>Beeper audio (500 Hz)</li>
  <li>Versión precompilada modo de video 320x200</li>
  <li>Versión reducida (DAC 1 bit) placa Wemos D1 R32 joystick norma ATARI DB9</li>
- <li>Soporte CVBS (PAL,NTSC) en WEMOS D1 R32 (GPIO 26) y TTGO VGA32 v1.x (GPIO 26 CLK mouse). Prestar atención a que la salida de video de la placa TTGO VGA32 trabaja con 5v, mientras que en Wemos D1 R32 es de 3v. Con la reducción del DAC, en la Wemos se limita a 1 voltio, pero la TTGO, no, salvo que se elija en el <b>gbConfig.h</b></li>
+ <li>Soporte CVBS (PAL,NTSC) en WEMOS D1 R32 (GPIO 26) y TTGO VGA32 v1.x (GPIO 26 CLK mouse). Prestar atención a que la salida de video de la placa TTGO VGA32 trabaja con 5v, mientras que en Wemos D1 R32 es de 3v. Con la reducción del DAC, en la Wemos se limita a 1 voltio, pero la TTGO, no, salvo que se elija en el <b>gbConfig.h</b></li> 
 </ul>
 
 <br><br>
@@ -172,7 +172,8 @@ En el archivo <b>hardware.h</b> se encuentra todo el GPIO (pinout).
  <li>26 - cvbs</li>
 </ul>
 
-
+El circuito para construirnos un joystick de norma ATARI es muy simple:
+<center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/gamepadatari.gif'></center>
 
 El valor de la resistencia (metal film) para el DAC VGA, así como el potenciómetro logarítmico para el audio, es variable, y puede que se necesiten diferentes valores, en función del monitor VGA, así como de la línea de auriculares. Si no conectamos la salida de auriculares a un preamplificador, es buena idea usar un filtro pasivo paso bajo con resistencias y condensadores, aunque dado la calidad del CHIP 8, no es necesario.<br>
 La norma ATARI DB9, usa la resistencia interna <b>Pullup</b>, de ahi que los GPIO 31 al 39 no se puedan usar.<br>
