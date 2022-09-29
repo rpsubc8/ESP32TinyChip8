@@ -165,12 +165,47 @@ The <b>hardware.h</b> file contains the entire GPIO (pinout).
  <li> 0 - Button B</li>
  <li>26 - cvbs</li>
  </ul>
+The circuit to build an ATARI standard joystick is very simple:
+<center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/gamepadatari.gif'></center>
 
 The resistor value (metal film) for the VGA DAC, as well as the logarithmic potentiometer for the audio, is variable, and different values may be needed, depending on the VGA monitor, as well as the headphone line. If you do not connect the headphone output to a preamplifier, it is a good idea to use a passive low pass filter with resistors and capacitors, although given the quality of the CHIP 8, it is not necessary.<br>
 The ATARI DB9 standard uses the internal <b>Pullup</b> resistor, hence GPIO 31 to 39 cannot be used.<br>
 On very old VGA monitors, a 75 Ohm resistor may have to be placed in parallel to match impedances.<br>
 In exceptional cases, it is recommended to put a very low protection resistor on the VGA HSYNC and VGA VSYNC lines to protect the pin. It is possible that for external reasons (error), the VGA monitor introduces voltage.<br>
 The VGA connector is female, while the DB9 joystick connector is male.
+
+<br><br>
+<h1>Test DAC cvbs</h1>
+For TTGO VGA32 as the output is 5v, we either do voltage reduction or we can scale down the DAC. At 3.3v output, with maximum value of 77, it would already give us 0.99v, which would be 1v. If we have 5v output, with 50, we already have 0.97v, which would be 1v. In this way, we no longer need reducing resistors, it is the direct wire. As long as we don't exceed 77 at 3.3v or 50 at 5v, we won't have a problem, especially if we only need 2 colors (black and white).
+We can test with a multimeter, especially on the TTGO VGA32 v1.x:
+<pre>
+//WEMOS D1 R32  Pin 26
+//DAC - Voltaje
+//  0 - 0.06
+// 38 - 0.52
+// 77 - 1
+//255 - 3.17
+
+#include <Arduino.h>
+#include <driver/dac.h>
+
+const int arrayValue[4]={0,38,77,255};
+unsigned char cont=0;
+
+void setup() {
+ Serial.begin(115200);
+ dac_output_enable(DAC_CHANNEL_2);
+}
+
+void loop() {
+ dac_output_voltage(DAC_CHANNEL_2, arrayValue[cont]);
+ Serial.printf("%d\n",arrayValue[cont]);
+ delay(4000);
+ cont++;
+ cont &= 0x03;
+}
+</pre>
+
 
 <br><br>
 <h1>Tool rom2h</h1>
