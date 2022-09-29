@@ -113,8 +113,13 @@ class CompositeOutput
   
   const TechProperties &properties;
   
-  CompositeOutput(Mode mode, int xres, int yres, double Vcc = 3.3)
+  #ifdef use_lib_cvbs_ttgo_vga32
+   CompositeOutput(Mode mode, int xres, int yres, double Vcc = 5)
     :properties((mode==NTSC) ? NTSCProperties: PALProperties)
+  #else
+   CompositeOutput(Mode mode, int xres, int yres, double Vcc = 3.3)
+    :properties((mode==NTSC) ? NTSCProperties: PALProperties)
+  #endif  
   {    
     int linesSyncTop = 5;
     int linesSyncBottom = 3;
