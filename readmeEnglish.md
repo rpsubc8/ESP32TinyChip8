@@ -5,7 +5,7 @@ Chip8 (Spittie) emulator port to TTGO VGA32 v1.x (1.0, 1.1, 1.2, 1.4) board with
 I have made several modifications:
 <ul>
  <li>Running on ESP32 with 520 KB of RAM (TTGO VGA32)</li>
- <li>Use of a single core</li>
+ <li>Use of a single core in VGA. For cvbs 2 cores are used.</li>
  <li>Low-income OSD</li>
  <li>Created project compatible with Arduino IDE and Platform IO</li>
  <li>Loading ROMs in Flash progmem</li>
