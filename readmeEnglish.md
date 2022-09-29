@@ -205,6 +205,7 @@ void loop() {
  cont &= 0x03;
 }
 </pre>
+The maximum values when writing to the video buffer in the WEMOS D1 R32 is 54, while for TTGO VGA32 v1.x it would be 35.
 
 
 <br><br>
