@@ -106,7 +106,7 @@ El archivo <b>gbConfig.h</b> se seleccionan las opciones:
 <ul>  
  <li><b>use_lib_200x150:</b> Modo 200x150</li>  
  <li><b>use_lib_320x200:</b> Modo 320x200</li>
- <li><b>use_lib_vga8colors:</b> Modo 8 colores (3 bits RGB) o 64 colores (6 bits RRGGBB)
+ <li><b>use_lib_vga8colors:</b> Modo 8 colores (3 bits RGB) o 64 colores (6 bits RRGGBB)</li>
  <li><b>use_lib_log_serial:</b> Se envian logs por puerto serie usb</li>
  <li><b>FIX_PERIBOARD_NOT_INITING:</b> Solución de David Crespo Tascón para teclados que no se inicializan.</li>
  <li><b>gb_ms_keyboard:</b> Se debe especificar el número de milisegundos de polling para el teclado.</li>  
