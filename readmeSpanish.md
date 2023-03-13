@@ -7,7 +7,8 @@ He realizado varias modificaciones:
  <li>Funcionando en ESP32 de 520 KB de RAM (TTGO VGA32)</li>  
  <li>Uso de un sólo core en VGA. Para cvbs se usan 2 cores.</li>
  <li>OSD de bajos recursos</li>
- <li>Creado proyecto compatible con Arduino IDE y Platform IO</li> 
+ <li>Creado proyecto compatible con Arduino IDE y Platform IO</li>
+ <li>Proyecto compatible con Arduino Web Editor y ArduinoDroid (6.3.1) con tool makeandroid.bat</li>
  <li>Carga de ROMs en Flash progmem</li>    
  <li>Soporte para modo 8 y 64 colores (versión reducida de Ricardo Massaro)</li>  
  <li>Modo de video 200x150 y 320x200</li>
@@ -37,11 +38,23 @@ Se requiere:
   <li>Placa Wemos D1 R32 VGA (DAC 1 bit) joystick ATARI DB9</li>
   <li>Visual Studio 1.66.1 PLATFORMIO 2.5.0 Espressif32 v3.5.0</li>
   <li>Arduino IDE 1.8.11 Espressif System 1.0.6</li>
+  <li>ArduinoDroid (6.3.1)</li>  
   <li>Librería reducida Arduino bitluni 0.3.3 (incluida en proyecto)</li>  
  </ul>
 <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/ttgovga32v12.jpg'></center>
 
 
+<br><br>
+<h1>ArduinoDroid</h1>
+Se debe ejecutar, sólo una vez, el script makeandroid.bat, que nos deja toda la estructura de datos del directorio dataFlash en el directorio raiz, así como reemplazando las archivos principales con llamadas de los .h sin usar el directorio de datos dataFlash.<br>
+Al finalizar, el propio script, termina borrando el directorio dataFlash.<br>
+El script utiliza el fart.exe (find and replace text).<br>
+Una vez, se haya ejecutado con éxito, se puede usar con el ArduinoDroid.
+
+
+<br><br>
+<h1>Arduino Web Editor</h1>
+Se debe ejecutar, sólo una vez, el script makeandroid.bat. Una vez finalizado, se sube a la nube como un proyecto cualquiera, ya sea comprimido en zip o por archivos.
 
 
 <br><br>
