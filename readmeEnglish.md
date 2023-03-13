@@ -8,6 +8,7 @@ I have made several modifications:
  <li>Use of a single core in VGA. For cvbs 2 cores are used.</li>
  <li>Low-income OSD</li>
  <li>Created project compatible with Arduino IDE and Platform IO</li>
+ <li>Web Editor and ArduinoDroid (6.3.1) compatible project with tool makeandroid.bat</li>
  <li>Loading ROMs in Flash progmem</li>
  <li>8 and 64 color mode support (reduced version by Ricardo Massaro)</li>
  <li>Video mode 200x150 and 320x200</li>
@@ -38,11 +39,26 @@ Required:
   <li>Wemos D1 R32 VGA (DAC 1 bit) ATARI DB9 joystick board</li>
   <li>Visual Studio 1.66.1 PLATFORMIO 2.5.0 Espressif32 v3.5.0</li>
   <li>Arduino IDE 1.8.11 Espressif System 1.0.6</li>
+  <li>ArduinoDroid (6.3.1)</li>
   <li>Arduino bitluni 0.3.3 reduced library (included in project)</li>
  </ul>
 <center><img src='https://raw.githubusercontent.com/rpsubc8/ESP32TinyChip8/main/preview/ttgovga32v12.jpg'></center>
 
- 
+
+<br><br>
+<h1>ArduinoDroid</h1>
+You must run, just once, the script makeandroid.bat, which leaves the entire data structure of the dataFlash directory in the root directory, as well as replacing the main files with .h calls without using the dataFlash data directory.<br>
+At the end, the script itself ends up deleting the dataFlash directory.<br>
+The script uses fart.exe (find and replace text).<br>
+Once, it has been successfully executed, it can be used with the ArduinoDroid.
+
+
+<br><br>
+<h1>Arduino Web Editor</h1>
+The makeandroid.bat script must be run once only. Once finished, it is uploaded to the cloud as any other project, either compressed in zip or by files.
+
+
+
 <br><br>
 <h1>PlatformIO</h1>
 PLATFORMIO 2.5.0 must be installed from the Visual Studio extensions. Espressif32 v3.5.0 is also required. 
